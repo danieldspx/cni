@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css?family=Imprima|Open+Sans');
+body{
+    background: -webkit-radial-gradient(circle, #ffffff, #f7f7f7, #ecf0f1);
+    background: -o-radial-gradient(circle, #ffffff, #f7f7f7, #ecf0f1);
+    background: -moz-radial-gradient(circle, #ffffff, #f7f7f7, #ecf0f1);
+    background: radial-gradient(circle, #ffffff, #f7f7f7, #ecf0f1);
+}
+
+.nav-link{
+    color: white !important;
+    margin: 0 15px 0 15px;
+}
+
+.active{
+    font-weight: bold;
+}
+
+.divider{
+    height: 10px;
+    width: 2px;
+    background-color: white;
+    border: none;
+    display: inline-block;
+}
+
+.shadow{
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2);
+}

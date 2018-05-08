@@ -1,0 +1,18 @@
+#core{
+    padding: 0 40px;
+}
+
+.notFound{
+    padding: 15px 50px;
+    text-align: left;
+    font-family: 'Imprima', sans-serif;
+    background-color: white;
+    border-radius: 8px;
+    font-size: 40px;
+    font-weight: bold;
+    margin-top: 30px;
+}
+
+.table{
+    margin-top: 40px;
+}
