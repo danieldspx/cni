@@ -11,6 +11,10 @@
 |
 */
 
+Route::get('/',function(){
+    return redirect('/login');
+});
+
 Route::get('/horario', 'HorarioController@getAll')->name('horario');
 
 Route::post('/horario/adicionar', 'HorarioController@addHorario');

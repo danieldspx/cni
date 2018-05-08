@@ -91,29 +91,33 @@ $("#addAlunoList").click(function(){
 
 $("#searchAluno").click(function(){
     var matricula = $("#matricula").val();
+    var nome = $("#nome").val();
     var _token = $("#token").val();
-    if(matricula == ""){
-        toastr.warning('Digite a matricula para buscar', 'Erro');
+    if(matricula == "" && nome == ""){
+        toastr.warning('Digite a matricula ou o nome para buscar', 'Atenção');
     } else {
         $.ajax({
             url: "aluno/buscar",
             method: "POST",
-            data: {"matricula":matricula,"_token":_token},
+            data: {"matricula":matricula,"nome":nome,"_token":_token},
             success: function(response){
                 if(parseInt(response) == 400){
                     toastr.error('Matrícula não encontrada!', 'Erro');
+                } else if(parseInt(response) == 404){
+                    toastr.error('Nome não encontrado!', 'Erro');
                 } else {
-                    var aluno = JSON.parse(response);
-                    $("#matricula").val(aluno.matricula);
-                    $("#nome").val(aluno.nome);
-                    $("#nascimento").val(aluno.nascimento);
-                    $("#telefone").val(aluno.telefone);
-                    if(parseInt(aluno.situacao) == 1){//Ativo
-                        $("#ativo").prop("checked",true);
-                    } else {
-                        $("#inativo").prop("checked",true);
-                    }
-                    updateMaterial(); //Update Labels
+                    // var alunos = JSON.parse(response);
+                    console.log(response);
+                    // $("#matricula").val(aluno.matricula);
+                    // $("#nome").val(aluno.nome);
+                    // $("#nascimento").val(aluno.nascimento);
+                    // $("#telefone").val(aluno.telefone);
+                    // if(parseInt(aluno.situacao) == 1){//Ativo
+                    //     $("#ativo").prop("checked",true);
+                    // } else {
+                    //     $("#inativo").prop("checked",true);
+                    // }
+                    // updateMaterial(); //Update Labels
                 }
             }
         });

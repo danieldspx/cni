@@ -30,6 +30,7 @@
                 <div class="navbar-nav">
                     @yield('navOptions')
                     <a class="nav-item nav-link" href="/horario" id="horarioLink"><i class="mdi mdi-clock"></i> Horários</a>
+                    <a class="nav-item nav-link" href="/aluno" id="alunoLink"><i class="mdi mdi-account-group"></i> Alunos</a>
                     <a class="nav-item nav-link" href="/logout"><i class="mdi mdi-logout-variant"></i> Sair</a>
                 </div>
             </div>

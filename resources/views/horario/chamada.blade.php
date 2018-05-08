@@ -82,7 +82,16 @@
                        <input id="matricula" type="number" maxlength="20" autocomplete="off">
                        <label for="matricula" data-to="matricula">Matrícula</label>
                    </div>
+                   <div class="input-field col-sm-10">
+                       <input id="nome" type="text" maxlength="60" autocomplete="off">
+                       <label for="nome" data-to="nome">Nome</label>
+                   </div>
                </div>
+               <div class="row">
+                   <div class="input-field col-sm-10">
+                       <div class="btn col-sm-12" id="buscarAlunoHorario">Buscar <i class="mdi mdi-account-search"></i></div>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="input-field col-sm-10">
                         <div class="btn col-sm-12" id="addAlunoHorario">Adicionar <i class="mdi mdi-account-plus"></i></div>

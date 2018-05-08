@@ -182,3 +182,34 @@ $('#saveChamada').click(function(){
         });
     }
 });
+
+$("#buscarAlunoHorario").click(function(){
+    var idHorario = horarioId();
+    var _token = $("#token").val();
+    var nomeAluno = $("#nome").val();
+    if(nomeAluno.length != 0){
+        $.ajax({
+            url: "chamada/buscaAluno",
+            method: "POST",
+            data: {"dataAlunos":JSON.stringify(dataAlunos),"horario": idHorario,"_token":_token},
+            success: function(response){
+                console.log(response);
+                switch (parseInt(response)) {
+                    case 409:
+                        toastr.error('Conflito de informações. Tente novamente.', 'Erro');
+                        break;
+                    case 406:
+                        toastr.error('Não foi possível criar a chamada.', 'Erro');
+                        break;
+                    case 417:
+                        toastr.error('Dados dos Alunos não foram salvos', 'Erro');
+                        break;
+                    default:
+                        toastr.success('Chamada salva com sucesso!', 'Sucesso');
+                }
+            }
+        });
+    } else {
+        toastr.warning('Digite o nome do aluno.', 'Atenção');
+    }
+});

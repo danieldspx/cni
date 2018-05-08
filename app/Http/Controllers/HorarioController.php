@@ -20,14 +20,20 @@ class HorarioController extends Controller
     {
         $this->middleware('autorizacao');
     }
-    
+
     public function getAll()
     {
-        $horarios = DB::table('horarios')
-            ->join('dias', 'dias.id', '=', 'dias_id')
-            ->join('materias', 'materias.id', '=', 'materias_id')
-            ->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia', 'end', 'start')
-            ->get(); //Gets the classes info.
+        try {
+            $horarios = DB::table('horarios')
+                ->join('dias', 'dias.id', '=', 'dias_id')
+                ->join('materias', 'materias.id', '=', 'materias_id')
+                ->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia', DB::raw("DATE_FORMAT(end,'%H:%i') end"), DB::raw("DATE_FORMAT(start,'%H:%i') start"))
+                ->orderBy('dias.id')
+                ->orderBy('start')
+                ->get(); //Gets the classes info.
+        } catch (\Exception $e) {
+            $horarios = array();
+        }
 
         $materias = Materia::all();
         $dias = Dia::all();
@@ -134,7 +140,7 @@ class HorarioController extends Controller
 
     public function newChamada($id)//Cria um novo relatorio
     {
-        $dataHoje = Carbon::now()->format('d/m/Y');
+        $dataHoje = Carbon::now()->format('Y-m-d');
 
         $dados = Request::only(['dataAlunos','horario']); //Get only matricula and horario
         if($id == $dados['horario']){
@@ -180,7 +186,7 @@ class HorarioController extends Controller
 
     public function relatorio($id)
     {
-        $todayComplete = Carbon::now()->format('d/m/Y');
+        $todayComplete = Carbon::now()->format('Y-m-d');
         try {
             $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
             $alunos = DB::select("SELECT alunos.matricula, alunos.telefone, alunos.nome, alunos.nascimento, situacoes.nome AS situacao FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :idHorario INNER JOIN relatorios_has_alunos ON relatorios_has_alunos.relatorios_id = :idRelatorio INNER JOIN situacoes ON situacoes.id = relatorios_has_alunos.situacoes_id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.id = relatorios_has_alunos.alunos_id AND alunos.situacao = 1",['idHorario' => $id,'idRelatorio'=>$todaysRelatorio->id]);
@@ -192,7 +198,7 @@ class HorarioController extends Controller
 
     public function relatorioPDF($id)
     {
-        $todayComplete = Carbon::now()->format('d/m/Y');
+        $todayComplete = Carbon::now()->format('Y-m-d');
         $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
 
         $alunos = DB::select("SELECT alunos.matricula, alunos.telefone, alunos.nome, alunos.nascimento, situacoes.nome AS situacao FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :idHorario INNER JOIN relatorios_has_alunos ON relatorios_has_alunos.relatorios_id = :idRelatorio INNER JOIN situacoes ON situacoes.id = relatorios_has_alunos.situacoes_id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.id = relatorios_has_alunos.alunos_id AND alunos.situacao = 1",['idHorario' => $id,'idRelatorio'=>$todaysRelatorio->id]);
