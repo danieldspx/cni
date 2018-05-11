@@ -2,6 +2,7 @@
 
 namespace cni\Http\Controllers;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Request;
 use cni\Horario;
 use cni\Materia;
@@ -64,7 +65,7 @@ class HorarioController extends Controller
     {
         $todayComplete = Carbon::now()->format('d/m/Y');
 
-        $alunos = DB::select("SELECT alunos.id, alunos.nome, alunos.nascimento FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.situacao = 1",['id' => $id]); //Todos os alunos
+        $alunos = DB::select("SELECT alunos.id, alunos.nome, alunos.nascimento FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.situacao = 1 ORDER BY alunos.nome ASC",['id' => $id]); //Todos os alunos
 
         try {
             $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
@@ -95,8 +96,8 @@ class HorarioController extends Controller
                 }
             }
 
-            $dayBirth = explode("/",$aluno->nascimento)[0];
-            $monthBirth = explode("/",$aluno->nascimento)[1];
+            $dayBirth = explode("-",$aluno->nascimento)[2];
+            $monthBirth = explode("-",$aluno->nascimento)[1];
 
             $aluno->nascimento = 0;//Não faz aniversário
 
@@ -189,11 +190,24 @@ class HorarioController extends Controller
         $todayComplete = Carbon::now()->format('Y-m-d');
         try {
             $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
-            $alunos = DB::select("SELECT alunos.matricula, alunos.telefone, alunos.nome, alunos.nascimento, situacoes.nome AS situacao FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :idHorario INNER JOIN relatorios_has_alunos ON relatorios_has_alunos.relatorios_id = :idRelatorio INNER JOIN situacoes ON situacoes.id = relatorios_has_alunos.situacoes_id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.id = relatorios_has_alunos.alunos_id AND alunos.situacao = 1",['idHorario' => $id,'idRelatorio'=>$todaysRelatorio->id]);
+            $alunos = DB::select("SELECT alunos.matricula, alunos.telefone_responsavel AS telefone, alunos.celular_responsavel AS celular, alunos.nome, alunos.nascimento, situacoes.nome AS situacao FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :idHorario INNER JOIN relatorios_has_alunos ON relatorios_has_alunos.relatorios_id = :idRelatorio INNER JOIN situacoes ON situacoes.id = relatorios_has_alunos.situacoes_id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.id = relatorios_has_alunos.alunos_id AND alunos.situacao = 1 ORDER By alunos.nome ASC",['idHorario' => $id,'idRelatorio'=>$todaysRelatorio->id]);
         } catch (\Exception $e) {
             $alunos = null;
         }
-        return view('horario.relatorio',compact('alunos'));
+        try {
+            $data = Carbon::now()->format('Y-m-d');
+            $alunosOcorrencia = DB::table('ocorrencias')
+            ->select('alunos.nome','alunos.matricula','ocorrencias.descricao','alunos.telefone_responsavel AS telefone', 'alunos.celular_responsavel AS celular')
+            ->join('alunos','alunos.id','=','ocorrencias.alunos_id')
+            ->where('ocorrencias.horarios_id',$id)
+            ->where('ocorrencias.data',$data)
+            ->where('alunos.situacao',1)
+            ->orderBy('alunos.nome','ASC')->get();
+        } catch (\Exception $e) {
+            $alunosOcorrencia = null;
+        }
+
+        return view('horario.relatorio',compact('alunos','alunosOcorrencia'));
     }
 
     public function relatorioPDF($id)
@@ -201,12 +215,161 @@ class HorarioController extends Controller
         $todayComplete = Carbon::now()->format('Y-m-d');
         $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
 
-        $alunos = DB::select("SELECT alunos.matricula, alunos.telefone, alunos.nome, alunos.nascimento, situacoes.nome AS situacao FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :idHorario INNER JOIN relatorios_has_alunos ON relatorios_has_alunos.relatorios_id = :idRelatorio INNER JOIN situacoes ON situacoes.id = relatorios_has_alunos.situacoes_id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.id = relatorios_has_alunos.alunos_id AND alunos.situacao = 1",['idHorario' => $id,'idRelatorio'=>$todaysRelatorio->id]);
+        $alunos = DB::select("SELECT alunos.matricula,  alunos.telefone_responsavel AS telefone, alunos.celular_responsavel AS celular, alunos.nome, alunos.nascimento, situacoes.nome AS situacao FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :idHorario INNER JOIN relatorios_has_alunos ON relatorios_has_alunos.relatorios_id = :idRelatorio INNER JOIN situacoes ON situacoes.id = relatorios_has_alunos.situacoes_id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.id = relatorios_has_alunos.alunos_id AND alunos.situacao = 1 ORDER By alunos.nome ASC",['idHorario' => $id,'idRelatorio'=>$todaysRelatorio->id]);
 
-        $pdf = PDF::loadView('horario.relatorioPDF',compact('alunos'));
+        try {
+            $data = Carbon::now()->format('Y-m-d');
+            $alunosOcorrencia = DB::table('ocorrencias')
+            ->select('alunos.nome','alunos.matricula','ocorrencias.descricao','alunos.telefone_responsavel AS telefone', 'alunos.celular_responsavel AS celular')
+            ->join('alunos','alunos.id','=','ocorrencias.alunos_id')
+            ->where('ocorrencias.horarios_id',$id)
+            ->where('ocorrencias.data',$data)
+            ->where('alunos.situacao',1)
+            ->orderBy('alunos.nome','ASC')->get();
+        } catch (\Exception $e) {
+            $alunosOcorrencia = null;
+        }
+        $dia = Carbon::now()->dayOfWeek;
+        switch ($dia){
+            case 1:
+                $dia = 'Segunda-feira';
+                break;
+            case 2:
+                $dia = 'Terca-feira';
+                break;
+            case 3:
+                $dia = 'Quarta-feira';
+                break;
+            case 4:
+                $dia = 'Quinta-feira';
+                break;
+            case 5:
+                $dia = 'Sexta-feira';
+                break;
+            case 6:
+                $dia = 'Sabado';
+                break;
+            default:
+                $dia = 'Domingo';
+                break;
+        }
+        $materia = 'Manut. de Micro';
+        $horario = "13:00 às 14:30";
+        $nomeProfessor = Auth::user()->name;
+        $pdf = PDF::loadView('horario.relatorioPDF',compact('alunos','alunosOcorrencia','nomeProfessor','dia','materia','horario'));
         $today = Carbon::now()->format('d_m_Y');
         $namePDF = "relatorio-$today.pdf";
-        return $pdf->save('/var/www/html/cni/'.$namePDF)->stream($namePDF);
-        PDF::loadView('horario.relatorioPDF',compact('alunos'))->save('/var/www/html/cni/my_stored_file.pdf')->stream('arquivo.pdf');
+        return $pdf->stream($namePDF);
+    }
+
+    public function ocorrencia($id)
+    {
+        $alunos = DB::select("SELECT alunos.id, alunos.nome, alunos.nascimento FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.situacao = 1 ORDER BY alunos.nome ASC",['id' => $id]); //Todos os alunos
+
+        return view('horario.ocorrencia')->with(compact('alunos'));
+    }
+
+    public function addOcorrencia($id)
+    {
+        try {
+            $data = Request::only(['alunos_id','descricao']);
+            $data['horarios_id'] = $id;
+            $data['professores_id'] = Auth::user()->id;//Professor
+            $data['data'] = Carbon::now()->format('Y-m-d');
+            DB::table('ocorrencias')->insert($data);
+            return 200;
+        } catch (\Exception $e) {
+            return 406;
+        }
+    }
+
+    public function salvaRelatorio($id)
+    {
+        $dia = Carbon::now()->dayOfWeek;
+        switch ($dia){
+            case 1:
+                $dia = 'Segunda-feira';
+                break;
+            case 2:
+                $dia = 'Terca-feira';
+                break;
+            case 3:
+                $dia = 'Quarta-feira';
+                break;
+            case 4:
+                $dia = 'Quinta-feira';
+                break;
+            case 5:
+                $dia = 'Sexta-feira';
+                break;
+            case 6:
+                $dia = 'Sabado';
+                break;
+            default:
+                $dia = 'Domingo';
+                break;
+        }
+        $data = Carbon::now()->format('d-m-Y');
+        $nomeRelatorio = "relatorio_".$data;
+        try {
+            $dados = Request::only('conteudo');
+            $dados['data'] = Carbon::now()->format('Y-m-d');
+            $dados['professores_id'] = Auth::user()->id;
+            $dados['horarios_id'] = $id;
+            DB::table('conteudo')->insert($data);
+
+            try { //Try to get some information
+                $info = DB::table('horarios')
+                ->select('materias.nome', DB::raw("DATE_FORMAT(start,'%H:%i') start"), DB::raw("DATE_FORMAT(end,'%H:%i') end"))
+                ->join('materias','materias.id','=','horarios.materias_id')
+                ->whereRaw("horarios.id = :id",['id'=>$id])
+                ->first();
+            } catch (\Exception $e) {
+                return 406;
+            }
+
+            $nomeMateria = $info->nome;
+            $de = $info->start;
+            $ate = $info->end;
+            $path = "/var/www/html/cni/relatorios/$dia/$nomeMateria/$de - $ate/";
+
+            try { //Try to create the directory
+                $result = File::makeDirectory($path,0777,true);
+            } catch (\Exception $e) {
+                return 403;
+            }
+
+            try { //Try to save PDF
+                $todayComplete = Carbon::now()->format('Y-m-d');
+                $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
+
+                $alunos = DB::select("SELECT alunos.matricula,  alunos.telefone_responsavel AS telefone, alunos.celular_responsavel AS celular, alunos.nome, alunos.nascimento, situacoes.nome AS situacao FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :idHorario INNER JOIN relatorios_has_alunos ON relatorios_has_alunos.relatorios_id = :idRelatorio INNER JOIN situacoes ON situacoes.id = relatorios_has_alunos.situacoes_id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.id = relatorios_has_alunos.alunos_id AND alunos.situacao = 1 ORDER By alunos.nome ASC",['idHorario' => $id,'idRelatorio'=>$todaysRelatorio->id]);
+
+                try {
+                    $data = Carbon::now()->format('Y-m-d');
+                    $alunosOcorrencia = DB::table('ocorrencias')
+                    ->select('alunos.nome','alunos.matricula','ocorrencias.descricao','alunos.telefone_responsavel AS telefone', 'alunos.celular_responsavel AS celular')
+                    ->join('alunos','alunos.id','=','ocorrencias.alunos_id')
+                    ->where('ocorrencias.horarios_id',$id)
+                    ->where('ocorrencias.data',$data)
+                    ->where('alunos.situacao',1)
+                    ->orderBy('alunos.nome','ASC')->get();
+                } catch (\Exception $e) {
+                    $alunosOcorrencia = null;
+                }
+                $conteudo = $dados['conteudo'];
+                $nomeProfessor = Auth::user()->name;
+                $horario = $de." às ".ate;
+                $pdf = PDF::loadView('horario.relatorioPDF',compact('alunos','alunosOcorrencia','nomeProfessor','dia','nomeMateria','horario','conteudo'));
+                $pdf->save($path.$nomeRelatorio);
+                return 200;
+            } catch (\Exception $e) {
+                return 406;
+            }
+
+
+        } catch (\Exception $e) {
+            return 206;
+        }
     }
 }

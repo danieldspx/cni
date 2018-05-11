@@ -12,10 +12,10 @@ class AlunoController extends Controller
         $this->middleware('autorizacao');
     }
 
-    public function dateConverter($value,$bomb,$to)
+    public function dateConverter($value)
     {
-        $date = explode($bomb,$value);
-        $newDate = $date[2].$to.$date[1].$to.$date[0];
+        $date = explode('-',$value);
+        $newDate = implode('-',array_reverse($date));
         return $newDate;
     }
 
@@ -37,7 +37,7 @@ class AlunoController extends Controller
             } catch (\Exception $e){
                 $aluno = new Aluno($params); //Novo aluno
             }
-            $aluno->nascimento = dateConverter($aluno->nascimento,'/','-');
+            $aluno->nascimento = $this->dateConverter($aluno->nascimento);
             $aluno->save();
             return 200;
         } catch (\Exception $e) {
@@ -51,8 +51,8 @@ class AlunoController extends Controller
         if(Request::input('matricula')){
             try {//Try find by matricula
                 $matricula = Request::input('matricula');
-                $aluno = Aluno::where('matricula', $matricula)->first();
-                $aluno->nascimento = dateConverter($aluno->nascimento,'-','/');
+                $aluno = Aluno::where('matricula', $matricula)->firstOrFail();
+                $aluno->nascimento = $this->dateConverter($aluno->nascimento);
                 return json_encode($aluno);
             } catch (\Exception $e) {
                 return 400;
@@ -60,9 +60,9 @@ class AlunoController extends Controller
         } else {
             try {//Try find by nome
                 $nome = strtoupper(Request::input('nome'));
-                $alunos = DB::table('alunos')->whereRaw("nome LIKE '$nome%'")->get();
+                $alunos = DB::table('alunos')->where('nome','LIKE',$nome.'%')->get();
                 foreach ($alunos as $key => $aluno) { //Update nascimento
-                    $aluno->nascimento = $this->dateConverter($aluno->nascimento,'-','/');
+                    $aluno->nascimento = $this->dateConverter($aluno->nascimento);
                     $alunos[$key] = $aluno;
                 }
                 return json_encode($alunos);

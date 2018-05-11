@@ -25,7 +25,13 @@ Route::get('/horario/{id}/chamada','HorarioController@chamada')->where('id','[0-
 
 Route::get('/horario/{id}/relatorio','HorarioController@relatorio')->where('id','[0-9]+');
 
+Route::get('/horario/{id}/ocorrencia','HorarioController@ocorrencia')->where('id','[0-9]+');
+
+Route::post('/horario/{id}/ocorrencia/adicionar','HorarioController@addOcorrencia')->where('id','[0-9]+');
+
 Route::get('/horario/{id}/relatorio/download','HorarioController@relatorioPDF')->where('id','[0-9]+');
+
+Route::post('/horario/{id}/relatorio/salvar','HorarioController@salvaRelatorio')->where('id','[0-9]+');
 
 Route::post('/horario/{id}/adicionar','HorarioController@incluirChamada')->where('id','[0-9]+');
 

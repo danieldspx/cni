@@ -102,3 +102,12 @@
     font-size: 20px;
     background-color: #ef5350;
 }
+
+#content-search{
+    max-height: 200px;
+    overflow-y: scroll;
+}
+
+#dropdown-alunos{
+    padding: 0px;
+}

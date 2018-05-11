@@ -16,3 +16,13 @@
 .table{
     margin-top: 40px;
 }
+
+.wrapConteudo{
+    margin-top: 50px;
+}
+
+.titleConteudo{
+    font-family: 'Imprima',sans-serif;
+    font-size: 25px;
+    font-weight: bold;
+}

@@ -1,3 +1,30 @@
+$.fn.extend({
+  animateCss: function(animationName, callback) {
+    var animationEnd = (function(el) {
+      var animations = {
+        animation: 'animationend',
+        OAnimation: 'oAnimationEnd',
+        MozAnimation: 'mozAnimationEnd',
+        WebkitAnimation: 'webkitAnimationEnd',
+      };
+
+      for (var t in animations) {
+        if (el.style[t] !== undefined) {
+          return animations[t];
+        }
+      }
+    })(document.createElement('div'));
+
+    this.addClass('animated ' + animationName).one(animationEnd, function() {
+      $(this).removeClass('animated ' + animationName);
+
+      if (typeof callback === 'function') callback();
+    });
+
+    return this;
+  },
+});
+
 $(document).ready(function(){
     $('select').each(function(){
         var $this = $(this), numberOfOptions = $(this).children('option').length;
@@ -50,6 +77,12 @@ function focusIn(element){
     $("label[data-to='"+id+"']").addClass("active").css("color","#26a69a");
 }
 
+function openPanel(){
+    $(".addContainer").css("display","block");
+    $(".addPanel").css("display","block");
+    $(".addPanel").animateCss("zoomIn");
+}
+
 function focusOut(element){
     let id = element.id;
     if($(element.target).val() == ""){
@@ -79,9 +112,7 @@ $(".input-field>input").focusout(function(element){
 });
 
 $(".newElement").click(function(){
-    $(".addContainer").css("display","block");
-    $(".addPanel").css("display","block");
-    $(".addPanel").animateCss("zoomIn");
+    openPanel();
 });
 
 function clearForm(){

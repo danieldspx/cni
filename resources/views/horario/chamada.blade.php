@@ -2,13 +2,12 @@
 
 @section('head')
     <link rel="stylesheet" href="{{ URL::asset('css/material.css') }}">
+    <link rel="stylesheet" href="{{ URL::asset('node_modules/sweet-dropdown/dist/min/jquery.sweet-dropdown.min.css') }}">
     <link rel="stylesheet" href="{{ URL::asset('css/horario/chamada.css') }}">
 @stop
 
 @section('navOptions')
-    <a class="nav-item nav-link" id="chamadaLink" href="chamada"><i class="mdi mdi-school"></i> Chamada</a>
-    <a class="nav-item nav-link" id="relatorioLink" href="relatorio"><i class="mdi mdi-clipboard-text"></i> Relatório</a>
-    <a class="nav-item nav-link" id="curriculoLink" href="curriculo"><i class="mdi mdi-book-open-variant"></i> Currículo</a>
+    @include('horario.navOptions')
 @stop
 
 @section('core')
@@ -85,11 +84,15 @@
                    <div class="input-field col-sm-10">
                        <input id="nome" type="text" maxlength="60" autocomplete="off">
                        <label for="nome" data-to="nome">Nome</label>
+                       <div class="dropdown-menu dropdown-anchor-top-left dropdown-has-anchor dark" id="dropdown-alunos">
+                           	<ul id="content-search">
+                           	</ul>
+                       </div>
                    </div>
                </div>
                <div class="row">
                    <div class="input-field col-sm-10">
-                       <div class="btn col-sm-12" id="buscarAlunoHorario">Buscar <i class="mdi mdi-account-search"></i></div>
+                       <div class="btn col-sm-12" id="searchAluno">Buscar <i class="mdi mdi-account-search"></i></div>
                     </div>
                 </div>
                 <div class="row">
@@ -109,5 +112,7 @@
 
 @section('script')
     <script src="{{ URL::asset('js/material.js') }}"></script>
+    <script src="{{ URL::asset('node_modules/sweet-dropdown/dist/min/jquery.sweet-dropdown.min.js') }}"></script>
     <script src="{{ URL::asset('js/horario/chamada.js') }}"></script>
+    <script src="{{ URL::asset('js/searchAluno.js') }}"></script>
 @stop
