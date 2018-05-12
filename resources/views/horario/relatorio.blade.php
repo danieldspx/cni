@@ -11,22 +11,37 @@
 
 @section('core')
     <div class="container-fluid" id="core">
-        <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
-        <div class="wrapConteudo">
-            <div class="titleConteudo">
-                <i class="mdi mdi-chair-school"></i> Conteúdo da Aula (Máx.: 500)
-            </div>
-            <div class="row">
-                <div class="input-field col-sm-5">
-                    <input id="descricao" type="text" maxlength="500" autocomplete="off">
-                    <label for="descricao" data-to="descricao">Conteúdo</label>
+        @if(!isset($conteudo))
+            <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
+            <div class="wrapConteudo">
+                <div class="titleConteudo">
+                    <i class="mdi mdi-chair-school"></i> Conteúdo da Aula (Máx.: 500)
+                </div>
+                <div class="row">
+                    <div class="input-field col-sm-5">
+                        <input id="descricao" type="text" maxlength="500" autocomplete="off">
+                        <label for="descricao" data-to="descricao">Conteúdo</label>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="row">
-            <button type="button" class="btn col-sm-3" id="saveRelatorio" style="margin-top: 30px; margin-left: 15px;">Salvar Relatório <i class="mdi mdi-content-save"></i></button>
-        </div>
-        @if(!isset($alunos))
+            <div class="row">
+                <button type="button" class="btn col-sm-3" id="saveRelatorio" style="margin-top: 30px; margin-left: 15px;">Salvar Relatório <i class="mdi mdi-content-save"></i></button>
+            </div>
+        @else
+            <table class="table table-bordered table-hover">
+                <thead class="thead-dark">
+                    <tr style="text-align: center">
+                        <th colspan="5">Conteúdo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{$conteudo->conteudo}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        @endif
+        @if(count($alunos) == 0)
             <div class="row">
                 <div class="notFound shadow col-sm-12" role="alert">
                     <i class="mdi mdi-emoticon-sad" style="color: #ff1744"></i> Nenhum relatório cadastrado.
@@ -60,9 +75,9 @@
             </tbody>
         </table>
         @endif
-        @if(!isset($alunosOcorrencia))
+        @if(count($alunosOcorrencia) == 0)
             <div class="row">
-                <div class="notFound shadow col-sm-12" role="alert">
+                <div class="notFound shadow col-sm-12" role="alert" style="margin-bottom: 50px;">
                     <i class="mdi mdi-emoticon-sad" style="color: #ff1744"></i> Nenhuma ocorrência cadastrada.
                 </div>
             </div>
@@ -92,6 +107,11 @@
                     @endforeach
                 </tbody>
             </table>
+        @endif
+        @if(isset($conteudo))
+        <div class="row">
+            <button type="button" class="btn col-sm-3" id="updateRelatorio">Atualizar Relatório <i class="mdi mdi-cloud-sync"></i></button>
+        </div>
         @endif
     </div>
 @stop

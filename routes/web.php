@@ -33,6 +33,8 @@ Route::get('/horario/{id}/relatorio/download','HorarioController@relatorioPDF')-
 
 Route::post('/horario/{id}/relatorio/salvar','HorarioController@salvaRelatorio')->where('id','[0-9]+');
 
+Route::post('/horario/{id}/relatorio/update','HorarioController@updateRelatorio')->where('id','[0-9]+');
+
 Route::post('/horario/{id}/adicionar','HorarioController@incluirChamada')->where('id','[0-9]+');
 
 Route::get('/aluno','AlunoController@getHome');
