@@ -24,11 +24,16 @@ class HorarioController extends Controller
 
     public function getAll()
     {
+        $dia = Carbon::now()->dayOfWeek;
+        if($dia==0){
+            $dia = 1;
+        }
         try {
             $horarios = DB::table('horarios')
                 ->join('dias', 'dias.id', '=', 'dias_id')
                 ->join('materias', 'materias.id', '=', 'materias_id')
                 ->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia','horarios.dias_id', DB::raw("DATE_FORMAT(end,'%H:%i') end"), DB::raw("DATE_FORMAT(start,'%H:%i') start"))
+                ->where('dias_id',$dia)
                 ->orderBy('dias.id')
                 ->orderBy('start')
                 ->get(); //Gets the classes info.
@@ -237,60 +242,6 @@ class HorarioController extends Controller
           ->get()->first();
 
         return view('horario.relatorio',compact('alunos','alunosOcorrencia','conteudo'));
-    }
-
-    public function relatorioPDF($id)
-    {
-        $todayComplete = Carbon::now()->format('Y-m-d');
-        $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
-
-        $alunos = DB::select("SELECT alunos.matricula,  alunos.telefone_responsavel AS telefone, alunos.celular_responsavel AS celular, alunos.nome, alunos.nascimento, situacoes.nome AS situacao FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :idHorario INNER JOIN relatorios_has_alunos ON relatorios_has_alunos.relatorios_id = :idRelatorio INNER JOIN situacoes ON situacoes.id = relatorios_has_alunos.situacoes_id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.id = relatorios_has_alunos.alunos_id AND alunos.situacao = 1 ORDER By alunos.nome ASC",['idHorario' => $id,'idRelatorio'=>$todaysRelatorio->id]);
-
-        try {
-            $data = Carbon::now()->format('Y-m-d');
-            $alunosOcorrencia = DB::table('ocorrencias')
-            ->select('alunos.nome','alunos.matricula','ocorrencias.descricao','alunos.telefone_responsavel AS telefone', 'alunos.celular_responsavel AS celular')
-            ->join('alunos','alunos.id','=','ocorrencias.alunos_id')
-            ->where('ocorrencias.horarios_id',$id)
-            ->where('ocorrencias.data',$data)
-            ->where('alunos.situacao',1)
-            ->orderBy('alunos.nome','ASC')->get();
-        } catch (\Exception $e) {
-            $alunosOcorrencia = null;
-        }
-        $dia = Carbon::now()->dayOfWeek;
-        switch ($dia){
-            case 1:
-                $dia = 'Segunda-feira';
-                break;
-            case 2:
-                $dia = 'Terca-feira';
-                break;
-            case 3:
-                $dia = 'Quarta-feira';
-                break;
-            case 4:
-                $dia = 'Quinta-feira';
-                break;
-            case 5:
-                $dia = 'Sexta-feira';
-                break;
-            case 6:
-                $dia = 'Sabado';
-                break;
-            default:
-                $dia = 'Domingo';
-                break;
-        }
-        $materia = 'Manut. de Micro';
-        $horario = "13:00 às 14:30";
-        $nomeProfessor = Auth::user()->name;
-        $nomeMateria = 'Mmanut. de Micros';
-        $conteudo = 'GO';
-        $pdf = PDF::loadView('horario.relatorioPDF',compact('alunos','alunosOcorrencia','nomeProfessor','dia','materia','horario','nomeMateria','conteudo'));
-        $today = Carbon::now()->format('d_m_Y');
-        $namePDF = "relatorio-$today.pdf";
-        return $pdf->stream($namePDF);
     }
 
     public function ocorrencia($id)

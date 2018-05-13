@@ -1,5 +1,7 @@
 $(document).ready(function(){
     $('#horarioLink').addClass('active');
+    $('#startNH').mask('00:00');
+    $('#endNH').mask('00:00');
 });
 
 $("#addHorarioList").click(function(){

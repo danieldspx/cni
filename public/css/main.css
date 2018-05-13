@@ -5,6 +5,7 @@ body{
     background: -moz-radial-gradient(circle, #ffffff, #f7f7f7, #ecf0f1);
     background: radial-gradient(circle, #ffffff, #f7f7f7, #ecf0f1);
     padding-top: 50px;
+    padding-bottom: 60px;
 }
 
 .nav-link{

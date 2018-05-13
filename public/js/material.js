@@ -119,6 +119,7 @@ function clearForm(){
     $('input[type=number]').val('');
     $('input[type=text]').val('');
     $('select').prop('selectedIndex', 0);
+    $('.select-styled').text("");
 }
 
 $("#clearForm").click(function(){

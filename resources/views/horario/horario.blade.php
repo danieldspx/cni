@@ -51,7 +51,7 @@
                     </select>
                 </div>
                 <div class="row">
-                    <div class="input-field col-sm-3">
+                    <div class="input-field col-sm-3 offset-sm-1">
                         <input id="startNH" type="text" maxlength="5" autocomplete="off">
                         <label for="startNH" data-to="startNH">De</label>
                     </div>
@@ -72,5 +72,6 @@
 @section('script')
     <script src="{{ URL::asset('node_modules/toastr/build/toastr.min.js') }}"></script>
     <script src="{{ URL::asset('js/material.js') }}"></script>
+    <script src="{{ URL::asset('node_modules/jquery-mask-plugin/dist/jquery.mask.min.js') }}"></script>
     <script src="{{ URL::asset('js/horario/horario.js') }}"></script>
 @stop

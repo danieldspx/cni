@@ -75,7 +75,12 @@ body {
     font-size: 20px;
     font-weight: bold;
     margin-top: 10px;
-    margin-left: 5%;
+    text-align: center;
+    color: #fff;
+}
+
+#toast-container{
+    left: auto !important;
 }
 
 @media(max-width: 750px){

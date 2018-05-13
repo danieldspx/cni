@@ -29,8 +29,6 @@ Route::get('/horario/{id}/ocorrencia','HorarioController@ocorrencia')->where('id
 
 Route::post('/horario/{id}/ocorrencia/adicionar','HorarioController@addOcorrencia')->where('id','[0-9]+');
 
-Route::get('/horario/{id}/relatorio/download','HorarioController@relatorioPDF')->where('id','[0-9]+');
-
 Route::post('/horario/{id}/relatorio/salvar','HorarioController@salvaRelatorio')->where('id','[0-9]+');
 
 Route::post('/horario/{id}/relatorio/update','HorarioController@updateRelatorio')->where('id','[0-9]+');

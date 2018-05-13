@@ -48,7 +48,7 @@ class LoginController extends Controller
             return redirect()->route('horario');
         }
 
-        return "Credenciais invalidas.";
+        return redirect()->route('login')->withErrors(['msg'=>'Credenciais invalidas.']);
     }
 
     public function logout()
