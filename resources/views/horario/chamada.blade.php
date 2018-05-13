@@ -11,8 +11,8 @@
 @stop
 
 @section('core')
-
     <div class="container-fluid" id="core">
+        <div class="title">{{$info->nome}} - {{$info->start}} às {{$info->end}}</div>
         <div class="row">
             <div class="newElement"><i class="mdi mdi-account"></i></div>
         </div>
@@ -26,9 +26,9 @@
             @foreach($alunos as $aluno)
                 <div class="row">
                     @if(property_exists($aluno,'situacao'))
-                    <div class="alunoContainer col-sm-12 shadow" data-situacao="{{$aluno->situacao}}" id="alunoItem{{$aluno->id}}">
+                    <div class="alunoContainer col-sm-12 shadow" data-situacao="{{$aluno->situacao}}" id="alunoItem{{$aluno->id}}" data-matricula="{{$aluno->matricula}}">
                     @else
-                    <div class="alunoContainer col-sm-12 shadow" id="alunoItem{{$aluno->id}}">
+                    <div class="alunoContainer col-sm-12 shadow" id="alunoItem{{$aluno->id}}" data-matricula="{{$aluno->matricula}}">
                     @endif
                         @if(property_exists($aluno,'situacao'))
                             @switch($aluno->situacao)
@@ -52,7 +52,7 @@
                         @if($aluno->nascimento == 1)
                             <i class="mdi mdi-cake-variant" id="birthdayIcon"></i>
                         @endif
-                        <div class="nomeAluno">{{str_limit($aluno->nome, $limit = 30, $end = '...')}}</div>
+                        <div class="nomeAluno">{{str_limit($aluno->nome, $limit = 30, $end = '...')}} <span class="matriculaN">{{$aluno->matricula}}</span></div>
                         <div class="buttonsAluno" data-id="alunoItem{{$aluno->id}}">
                             <i class="mdi mdi-checkbox-marked-circle setPresenca"></i>
                             <i class="mdi mdi-close-circle setFalta"></i>
@@ -68,7 +68,7 @@
             @endforeach
         @endif
         <div class="row">
-            <button type="button" class="btn col-sm-3" id="saveChamada" style="margin-top: 30px;">Salvar Chamada <i class="mdi mdi-content-save"></i></button>
+            <button type="button" class="btn col-sm-6 col-md-4 col-10" id="saveChamada">Salvar Chamada <i class="mdi mdi-content-save"></i></button>
         </div>
     </div>
     <div class="addContainer">

@@ -21,7 +21,7 @@
                 <div class="row">
                     <a href="horario/{{$horario->id}}" class="linkHorario">
                         <div class="horarioContainer shadow col-sm-10">
-                            <div class="horarioTitle"><i class="mdi mdi-checkbox-blank-circle labelHorario"></i> {{$horario->materia}}</div>
+                            <div class="horarioTitle"><i class="mdi mdi-checkbox-blank-circle labelHorario day{{$horario->dias_id}}"></i> {{$horario->materia}}</div>
                             <div class="descricao"><i class="mdi mdi-clock"></i> {{$horario->dia}} - {{$horario->start}} às {{$horario->end}}</div>
                         </div>
                     </a>
@@ -61,8 +61,8 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="btn col-sm-4 offset-sm-1" id="addHorarioList">Adicionar <i class="mdi mdi-calendar-plus"></i></div>
-                    <div class="btn col-sm-4 offset-sm-2 red-accent-2" id="clearForm">Limpar <i class="mdi mdi-close"></i></div>
+                    <div class="btn col-sm-4 offset-sm-1 col-10 offset-1" id="addHorarioList" style="margin-bottom: 10px;">Adicionar <i class="mdi mdi-calendar-plus"></i></div>
+                    <div class="btn col-sm-4 offset-sm-2 red-accent-2 col-10 offset-1" id="clearForm">Limpar <i class="mdi mdi-close"></i></div>
                 </div>
             </div>
         </div>

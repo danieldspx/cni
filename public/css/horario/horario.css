@@ -93,3 +93,44 @@ body{
 .red-accent-2{
     background-color: #ff5252 !important;
 }
+
+.day1{
+    color: #66bb6a;
+}
+.day2{
+    color: #4fc3f7;
+}
+.day3{
+    color: #7c4dff;
+}
+.day4{
+    color: #ff1744;
+}
+.day5{
+    color: #fb8c00;
+}
+.day6{
+    color: #f06292;
+}
+
+@media(max-width: 992px){
+    .horarioContainer{
+        font-size: 30px;
+        padding: 15px;
+        width: 100%;
+        height: auto;
+    }
+    .horarioTitle{
+        margin-left: 0px;
+    }
+    .descricao{
+        display: inline-block;
+        position: relative;
+        font-size: 20px;
+        right: -5px;
+        margin-bottom: 10px;
+    }
+    .nomeAluno{
+        font-size: 20px;
+    }
+}

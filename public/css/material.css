@@ -4,7 +4,6 @@
     position: relative;
     margin-top: 1rem;
     margin-bottom: 1rem;
-    margin-left: 25px;
 }
 .input-field>input{
     background-color: transparent;
@@ -210,6 +209,7 @@
     padding: 0 15px;
     position: relative;
     clear: both;
+    margin-left: 25px;
 }
 
 .addPanel, .addContainer{
@@ -298,4 +298,12 @@
   height: 10px;
   transform: scale(0);
   background: #337ab7;
+}
+@media(max-width: 992px){
+    .addPanel{
+        width: 100%;
+        left: 0;
+        height: 100%;
+        max-height: 100%;
+    }
 }

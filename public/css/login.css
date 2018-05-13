@@ -13,14 +13,8 @@
     src: url("../fonts/Montserrat-Regular.ttf")
 }
 
-html{
-    height: 100%;
-}
-
 body {
     background: linear-gradient(65deg, #FF9001 0, #EE2E5D 75%);
-    max-height: 100vh;
-    overflow-y: hidden;
 }
 
 .login {
@@ -36,6 +30,7 @@ body {
     padding: 10px;
     position: relative;
     display: block;
+    margin-top: 20px;
 }
 
 .middle {
@@ -74,4 +69,21 @@ body {
     border-bottom-width: 2px;
     border-bottom-style: solid;
     padding: 0px 15px 3px 15px;
+}
+
+.copyright{
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-left: 5%;
+}
+
+@media(max-width: 750px){
+    .login{
+        width: 90% !important;
+        margin-left: 5%;
+    }
+    .titulo{
+        font-size: 60px;
+    }
 }

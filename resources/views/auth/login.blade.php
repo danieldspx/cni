@@ -43,6 +43,9 @@
             </span>
         </div>
     </div>
+    <div class="row copyright">
+        <i class="mdi mdi-copyright"></i> Daniel dos Santos Pereira
+    </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
 </body>
 </html>

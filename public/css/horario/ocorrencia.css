@@ -16,6 +16,16 @@
     display: inline-block;
 }
 
+.notFound{
+    padding: 15px 50px;
+    text-align: left;
+    font-family: 'Imprima', sans-serif;
+    background-color: white;
+    border-radius: 8px;
+    font-size: 40px;
+    font-weight: bold;
+}
+
 .buttonsAluno{
     font-size: 40px;
     cursor: pointer;
@@ -34,4 +44,50 @@
 
 .setOcorrencia{
     color: #ef5350;
+}
+
+@media(max-width: 500px){
+    .alunoContainer{
+        font-size: 30px;
+        padding: 15px;
+    }
+    .buttonsAluno{
+        display: inline-block;
+        position: relative;
+        font-size: 30px;
+        margin-left: 10px;
+    }
+    .nomeAluno{
+        font-size: 20px;
+    }
+}
+
+@media(max-width: 700px){
+    .alunoContainer{
+        font-size: 35px;
+    }
+    .buttonsAluno{
+        display: inline-block;
+        position: relative;
+        font-size: 35px;
+        margin-left: 10px;
+    }
+    .nomeAluno{
+        font-size: 20px;
+    }
+}
+
+@media(max-width: 1000px){
+    .alunoContainer{
+        font-size: 40px;
+    }
+    .buttonsAluno{
+        display: inline-block;
+        position: relative;
+        font-size: 35px;
+        margin-left: 10px;
+    }
+    .nomeAluno{
+        font-size: 25px;
+    }
 }

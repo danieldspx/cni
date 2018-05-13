@@ -51,27 +51,68 @@ $("#addAlunoHorario").click(function(){
     var idHorario = horarioId();
     var _token = $("#token").val();
     var matricula = $("#matricula").val();
-    var url = "/horario/"+idHorario+"/adicionar";
-    $.ajax({
-        url: url,
-        method: 'POST',
-        data: {"matricula": matricula, "horario": idHorario, "_token": _token},
-        success: function(response){
-            switch (parseInt(response)) {
-                case 409:
-                    toastr.error('Conflito de informações. Tente novamente.', 'Erro');
-                    break;
-                case 406:
-                    toastr.error('Não foi possível adicionar o aluno.', 'Erro');
-                    break;
-                case 404:
-                    toastr.error('Aluno não encontrado.', 'Erro');
-                    break;
-                default:
-                    toastr.success('Aluno adicionado com sucesso!', 'Sucesso');
+    var url = "chamada/adicionar";
+    if(matricula.length != 0){
+        $.ajax({
+            url: url,
+            method: 'POST',
+            data: {"matricula": matricula, "horario": idHorario, "_token": _token},
+            success: function(response){
+                switch (parseInt(response)) {
+                    case 409:
+                        toastr.error('Conflito de informações. Tente novamente.', 'Erro');
+                        break;
+                    case 406:
+                        toastr.error('Não foi possível adicionar o aluno.', 'Erro');
+                        break;
+                    case 404:
+                        toastr.error('Aluno não encontrado.', 'Erro');
+                        break;
+                    default:
+                        toastr.success('Aluno adicionado com sucesso!', 'Sucesso');
+                        $('#nome').val('');
+                        $('#matricula').val('');
+                }
             }
-        }
-    });
+        });
+    } else {
+        toastr.warning('Digite a matrícula do aluno.', 'Atenção');
+    }
+});
+
+$("#removeAlunoHorario").click(function(){
+    var idHorario = horarioId();
+    var _token = $("#token").val();
+    var matricula = $("#matricula").val();
+    var url = "chamada/remover";
+    if(matricula.length != 0){
+        $.ajax({
+            url: url,
+            method: 'POST',
+            data: {"matricula": matricula, "horario": idHorario, "_token": _token},
+            success: function(response){
+                switch (parseInt(response)) {
+                    case 409:
+                        toastr.error('Conflito de informações. Tente novamente.', 'Erro');
+                        break;
+                    case 406:
+                        toastr.error('Não foi possível remover o aluno.', 'Erro');
+                        break;
+                    case 404:
+                        toastr.error('Aluno não encontrado.', 'Erro');
+                        break;
+                    default:
+                        toastr.success('Aluno removido com sucesso!', 'Sucesso');
+                        $('#nome').val('');
+                        $('#matricula').val('');
+                        $('div.alunoContainer[data-matricula='+matricula+"]").remove();
+
+                }
+            }
+        });
+    } else {
+        toastr.warning('Digite a matrícula do aluno.', 'Atenção');
+    }
 });
 
 function setSituacao(element,situacao){

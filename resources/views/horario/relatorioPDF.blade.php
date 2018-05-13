@@ -69,7 +69,7 @@
                 <div class="row">Dia: {{$dia}} <br> Horário: {{$horario}}</div>
                 <div class="row">Curso: {{$nomeMateria}} <br> Professor: {{$nomeProfessor}}</div>
             </div>
-            @if(!isset($alunos))
+            @if(empty($alunos))
                 <div class="row">
                     <div class="notFound shadow col-sm-12" role="alert">
                         Nenhum relatório cadastrado.
@@ -103,7 +103,7 @@
                 </tbody>
             </table>
             @endif
-            @if(!isset($alunosOcorrencia))
+            @if(count($alunosOcorrencia) == 0)
                 <div class="row">
                     <div class="notFound shadow col-sm-12" role="alert">
                         <i class="mdi mdi-emoticon-sad" style="color: #ff1744"></i> Nenhuma ocorrência cadastrada.

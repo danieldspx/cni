@@ -28,14 +28,13 @@ class HorarioController extends Controller
             $horarios = DB::table('horarios')
                 ->join('dias', 'dias.id', '=', 'dias_id')
                 ->join('materias', 'materias.id', '=', 'materias_id')
-                ->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia', DB::raw("DATE_FORMAT(end,'%H:%i') end"), DB::raw("DATE_FORMAT(start,'%H:%i') start"))
+                ->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia','horarios.dias_id', DB::raw("DATE_FORMAT(end,'%H:%i') end"), DB::raw("DATE_FORMAT(start,'%H:%i') start"))
                 ->orderBy('dias.id')
                 ->orderBy('start')
                 ->get(); //Gets the classes info.
         } catch (\Exception $e) {
             $horarios = array();
         }
-
         $materias = Materia::all();
         $dias = Dia::all();
         return view('horario.horario')->with(compact('horarios','materias','dias'));
@@ -63,16 +62,18 @@ class HorarioController extends Controller
 
     public function chamada($id)//View chamada
     {
-        $todayComplete = Carbon::now()->format('d/m/Y');
-
-        $alunos = DB::select("SELECT alunos.id, alunos.nome, alunos.nascimento FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.situacao = 1 ORDER BY alunos.nome ASC",['id' => $id]); //Todos os alunos
-
+        $todayComplete = Carbon::now()->format('Y-m-d');
+        $info = DB::table('horarios')
+        ->select('materias.nome', DB::raw("DATE_FORMAT(start,'%H:%i') start"), DB::raw("DATE_FORMAT(end,'%H:%i') end"))
+        ->join('materias','materias.id','=','horarios.materias_id')
+        ->whereRaw("horarios.id = :id",['id'=>$id])
+        ->first();
+        $alunos = DB::select("SELECT alunos.id, alunos.nome, alunos.matricula, alunos.nascimento FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.situacao = 1 ORDER BY alunos.nome ASC",['id' => $id]); //Todos os alunos
         try {
             $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
             $alunosRelatorio = DB::table('relatorios_has_alunos') //Alunos que estao no relatorio
             ->where('relatorios_id',$todaysRelatorio->id)
             ->select('situacoes_id AS situacao','alunos_id AS id')->get();
-
             $isRelatorio = true;
         } catch (\Exception $e) {
             $isRelatorio = false;
@@ -113,7 +114,7 @@ class HorarioController extends Controller
                 }
             }
         }
-        return view('horario.chamada')->with(compact('alunos','id'));
+        return view('horario.chamada')->with(compact('alunos','id','info'));
     }
 
     public function incluirChamada($id) //Adiciona aluno na chamada
@@ -131,6 +132,30 @@ class HorarioController extends Controller
                     return 200; //Adicionado com sucesso
                 } catch (\Exception $e) { //Not possible to insert
                     return 406; //Erro ao adicionar o aluno.
+                }
+
+            } catch (\Exception $e) { //Aluno not found
+                return 404; //Aluno nao encontrado
+            }
+        }
+    }
+
+    public function removerChamada($id) //Remove aluno da chamada
+    {
+        $dados = Request::only(['matricula','horario']); //Get only matricula and horario
+        if($id != $dados['horario']){
+            return 409; //Conflito de informações
+        } else { //Good to go
+            try { //Try to remove Aluno from chamada
+                $aluno = Aluno::where('matricula', $dados['matricula'])->firstOrFail();
+                try { //Try to remove Aluno
+                    DB::table('horarios_has_alunos')
+                    ->where('horarios_id',$id)
+                    ->where('alunos_id',$aluno->id)
+                    ->delete();
+                    return 200; //Deletado com sucesso
+                } catch (\Exception $e) { //Not possible to insert
+                    return 406; //Erro ao remover o aluno.
                 }
 
             } catch (\Exception $e) { //Aluno not found
@@ -370,7 +395,7 @@ class HorarioController extends Controller
             }
 
         } catch (\Exception $e) {
-            return 206;
+            return 406;
         }
     }
 
@@ -401,9 +426,10 @@ class HorarioController extends Controller
                 break;
         }
         $data = Carbon::now()->format('d-m-Y');
+        $todayComplete = Carbon::now()->format('Y-m-d');
         $nomeRelatorio = "relatorio_".$data;
         try {
-            $conteudoDB = DB::table('conteudo')->select('conteudo')->where('horarios_id',$id)->where('data', $dados[0]['data'])->get()->first();
+            $conteudoDB = DB::table('conteudo')->select('conteudo')->where('horarios_id',$id)->where('data', $todayComplete)->get()->first();
             if(!isset($conteudoDB)){
                 return 406; //Nenhum conteudo de aula encontrado.
             }
@@ -411,12 +437,11 @@ class HorarioController extends Controller
                 $info = DB::table('horarios')
                 ->select('materias.nome', DB::raw("DATE_FORMAT(start,'%H:%i') start"), DB::raw("DATE_FORMAT(end,'%H:%i') end"))
                 ->join('materias','materias.id','=','horarios.materias_id')
-                ->whereRaw("horarios.id = :id",['id'=>$id])
+                ->where("horarios.id",$id)
                 ->first();
             } catch (\Exception $e) {
                 return 406;
             }
-
             $nomeMateria = $info->nome;
             $de = $info->start;
             $ate = $info->end;
@@ -427,7 +452,6 @@ class HorarioController extends Controller
                 return 403;
             }
             try { //Try to save PDF
-                $todayComplete = Carbon::now()->format('Y-m-d');
                 $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
 
                 $alunos = DB::select("SELECT alunos.matricula,  alunos.telefone_responsavel AS telefone, alunos.celular_responsavel AS celular, alunos.nome, alunos.nascimento, situacoes.nome AS situacao FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :idHorario INNER JOIN relatorios_has_alunos ON relatorios_has_alunos.relatorios_id = :idRelatorio INNER JOIN situacoes ON situacoes.id = relatorios_has_alunos.situacoes_id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.id = relatorios_has_alunos.alunos_id AND alunos.situacao = 1 ORDER By alunos.nome ASC",['idHorario' => $id,'idRelatorio'=>$todaysRelatorio->id]);
@@ -439,7 +463,7 @@ class HorarioController extends Controller
                 } catch (\Exception $e) {
                     $alunosOcorrencia = null;
                 }
-                $conteudo = $conteudoDB['conteudo'];
+                $conteudo = $conteudoDB->conteudo;
                 $nomeProfessor = Auth::user()->name;
                 $horario = $de." às ".$ate;
                 $pdf = PDF::loadView('horario.relatorioPDF',compact('alunos','alunosOcorrencia','nomeProfessor','dia','nomeMateria','horario','conteudo'));
@@ -450,7 +474,18 @@ class HorarioController extends Controller
             }
 
         } catch (\Exception $e) {
-            return 206;
+            return $e->getMessage();
+            return 406;
         }
+    }
+
+    public function getConteudo($id)
+    {
+        $conteudos = DB::table('conteudo')
+        ->select( DB::raw('DATE_FORMAT(data,\'%d/%m/%Y\') data'),'conteudo','professores.name')
+        ->join('professores','professores.id','=','conteudo.professores_id')
+        ->where('horarios_id',$id)
+        ->get();
+        return view('horario.conteudo',compact('conteudos'));
     }
 }

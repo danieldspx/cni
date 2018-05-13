@@ -18,19 +18,23 @@ $('#addOcorrencia').click(function(){
     var idAluno = $('#idAluno').val();
     var descricao = $('#descricao').val();
     var _token = $("#token").val();
-    $.ajax({
-        method: "POST",
-        url: "ocorrencia/adicionar",
-        data: {"alunos_id":idAluno,"descricao": descricao,"_token":_token},
-        success: function(response){
-            console.log(response);
-            switch (parseInt(response)) {
-                case 406:
-                    toastr.error('Erro ao salvar a ocorrência.');
-                    break;
-                default:
-                    toastr.success('Ocorrência salva com sucesso.');
+    if(descricao.length != 0){
+        $.ajax({
+            method: "POST",
+            url: "ocorrencia/adicionar",
+            data: {"alunos_id":idAluno,"descricao": descricao,"_token":_token},
+            success: function(response){
+                console.log(response);
+                switch (parseInt(response)) {
+                    case 406:
+                        toastr.error('Erro ao salvar a ocorrência.');
+                        break;
+                    default:
+                        toastr.success('Ocorrência salva com sucesso.');
+                }
             }
-        }
-    });
+        });
+    } else {
+        toastr.warning('Digite a descrição.', 'Atenção');
+    }
 });

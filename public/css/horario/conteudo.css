@@ -14,20 +14,9 @@
     margin-top: 30px;
 }
 
-.table{
-    margin-top: 40px;
-}
-
-.wrapConteudo{
+.table-responsive{
     margin-top: 50px;
 }
-
-.titleConteudo{
-    font-family: 'Imprima',sans-serif;
-    font-size: 25px;
-    font-weight: bold;
-}
-
 @media(max-width: 800px){
     #core{
         padding: 0 5px;
