@@ -83,7 +83,6 @@ class HorarioController extends Controller
         } catch (\Exception $e) {
             $isRelatorio = false;
         }
-
         $today['day'] = Carbon::now()->format('d');
         $today['month'] = Carbon::now()->format('m');
         $today['year'] = Carbon::now()->format('Y');
@@ -97,6 +96,7 @@ class HorarioController extends Controller
                         $dadoAluno['nome'] = $aluno->nome;
                         $dadoAluno['nascimento'] = $aluno->nascimento;
                         $dadoAluno['situacao'] = $alunosRelatorio[$i]->situacao;
+                        $dadoAluno['matricula'] = $aluno->matricula;
                         $alunos[$key] = (object)$dadoAluno; //Replace with Situacao
                     }
                 }
