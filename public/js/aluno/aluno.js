@@ -30,6 +30,7 @@ function populateForm(aluno) {
     $("#nome").val(aluno.nome);
     $("#nascimento").val(aluno.nascimento);
     $("#telefone").val(aluno.telefone);
+    $("#nome_responsavel").val(aluno.nome_responsavel);
     $("#telefone_responsavel").val(aluno.telefone_responsavel);
     $("#celular_responsavel").val(aluno.celular_responsavel);
     if(parseInt(aluno.situacao) == 1){//Ativo
@@ -73,6 +74,9 @@ $(document).ready(function(){
         data.nascimento = $("#nascimento").val();
         data.situacao = $("input[name=situacao]:checked").val();
         data.telefone = $("#telefone").val();
+        data.nome_responsavel = $("#nome_responsavel").val();
+        data.telefone_responsavel = $("#telefone_responsavel").val();
+        data.celular_responsavel = $("#celular_responsavel").val();
         var _token = $("#token").val();
         var someEmpty = false;
         for(var key in data){

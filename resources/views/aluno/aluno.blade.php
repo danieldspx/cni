@@ -44,16 +44,21 @@
             </div>
             <div class="row">
                 <div class="input-field col-sm-4">
-                    <input id="telefone_responsavel" type="text" maxlength="20" autocomplete="nope">
-                    <label for="telefone_responsavel" data-to="telefone_responsavel">Telefone Responsável</label>
+                    <input id="nome_responsavel" type="text" maxlength="60" autocomplete="nope">
+                    <label for="nome_responsavel" data-to="nome_responsavel">Nome Responsável</label>
                 </div>
             </div>
             <div class="row">
-                <div class="input-field col-sm-4">
+                <div class="input-field col-sm-2">
+                    <input id="telefone_responsavel" type="text" maxlength="20" autocomplete="nope">
+                    <label for="telefone_responsavel" data-to="telefone_responsavel">Telefone Responsável</label>
+                </div>
+                <div class="input-field col-sm-2">
                     <input id="celular_responsavel" type="text" maxlength="20" autocomplete="nope">
                     <label for="celular_responsavel" data-to="celular_responsavel">Celular Responsável</label>
                 </div>
             </div>
+
              <div class="row">
                  <div class="input-field col-sm-8">
                      <div class="md-radio md-radio-inline">
