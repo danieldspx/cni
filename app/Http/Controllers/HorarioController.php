@@ -24,7 +24,9 @@ class HorarioController extends Controller
 
     public function getAll()
     {
-        $dia = Carbon::now()->setTimezone('America/Sao_Paulo')->dayOfWeek;
+        $today = Carbon::now()->setTimezone('America/Sao_Paulo');
+        $dia = $today->dayOfWeek;
+        $hora = $today->format('h:i');
         if($dia==0){
             $dia = 1;
         }
@@ -34,6 +36,7 @@ class HorarioController extends Controller
                 ->join('materias', 'materias.id', '=', 'materias_id')
                 ->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia','horarios.dias_id', DB::raw("DATE_FORMAT(end,'%H:%i') end"), DB::raw("DATE_FORMAT(start,'%H:%i') start"))
                 ->where('dias_id',$dia)
+                ->where('horarios.end','>=',$hora)
                 ->orderBy('dias.id')
                 ->orderBy('start')
                 ->get(); //Gets the classes info.
