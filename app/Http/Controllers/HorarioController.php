@@ -37,8 +37,10 @@ class HorarioController extends Controller
                 ->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia','horarios.dias_id', DB::raw("DATE_FORMAT(end,'%H:%i') end"), DB::raw("DATE_FORMAT(start,'%H:%i') start"))
                 ->where('dias_id',$dia)
                 ->where('horarios.end','>=',$hora)
+                ->whereBetween('materias_id', [1, 7])
                 ->orderBy('dias.id')
                 ->orderBy('start')
+                ->orderBy('materias.nome')
                 ->get(); //Gets the classes info.
         } catch (\Exception $e) {
             $horarios = array();
