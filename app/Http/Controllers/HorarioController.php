@@ -9,6 +9,7 @@ use cni\Materia;
 use cni\Dia;
 use cni\Aluno;
 use cni\Relatorio;
+use cni\Professor;
 use Carbon\Carbon;
 use PDF;
 use Auth;
@@ -24,19 +25,49 @@ class HorarioController extends Controller
 
     public function getAll()
     {
-        $dia = Carbon::now()->setTimezone('America/Sao_Paulo')->dayOfWeek;
+        $today = Carbon::now()->setTimezone('America/Sao_Paulo');
+		$dia = $today->dayOfWeek;
+		$hora = $today->format('H:i');
         if($dia==0){
             $dia = 1;
         }
         try {
-            $horarios = DB::table('horarios')
-                ->join('dias', 'dias.id', '=', 'dias_id')
-                ->join('materias', 'materias.id', '=', 'materias_id')
-                ->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia','horarios.dias_id', DB::raw("DATE_FORMAT(end,'%H:%i') end"), DB::raw("DATE_FORMAT(start,'%H:%i') start"))
-                ->where('dias_id',$dia)
-                ->orderBy('dias.id')
-                ->orderBy('start')
-                ->get(); //Gets the classes info.
+				if(Request::input('filtro')!='all'){
+					if(Auth::user()->access == 3){
+						$horarios = DB::table('horarios')
+								->join('dias', 'dias.id', '=', 'dias_id')
+								->join('materias', 'materias.id', '=', 'materias_id')
+								->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia','horarios.dias_id', DB::raw("DATE_FORMAT(end,'%H:%i') end"), DB::raw("DATE_FORMAT(start,'%H:%i') start"))
+								->where('dias_id',$dia)
+								->where('horarios.end','>=',$hora)
+								->whereBetween('materias.id', [1, 7])
+								->orderBy('dias.id')
+								->orderBy('start')
+								->orderBy('materias.nome')
+								->get(); //Gets the classes info.
+					} else {
+						$horarios = DB::table('horarios')
+								->join('dias', 'dias.id', '=', 'dias_id')
+								->join('materias', 'materias.id', '=', 'materias_id')
+								->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia','horarios.dias_id', DB::raw("DATE_FORMAT(end,'%H:%i') end"), DB::raw("DATE_FORMAT(start,'%H:%i') start"))
+								->where('dias_id',$dia)
+								->where('horarios.end','>=',$hora)
+								->orderBy('dias.id')
+								->orderBy('start')
+								->orderBy('materias.nome')
+								->get(); //Gets the classes info.
+					}
+					
+				} else {
+					$horarios = DB::table('horarios')
+								->join('dias', 'dias.id', '=', 'dias_id')
+								->join('materias', 'materias.id', '=', 'materias_id')
+								->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia','horarios.dias_id', DB::raw("DATE_FORMAT(end,'%H:%i') end"), DB::raw("DATE_FORMAT(start,'%H:%i') start"))
+								->orderBy('dias.id')
+								->orderBy('start')
+								->orderBy('materias.nome')
+								->get(); //Gets the classes info.
+				}
         } catch (\Exception $e) {
             $horarios = array();
         }
@@ -189,6 +220,7 @@ class HorarioController extends Controller
             try {
                 $params['data'] = $dataHoje;
                 $params['horarios_id'] = $id;
+				$params['professores_id'] = Auth::user()->id;//Professor
                 $relatorio = new Relatorio($params);
                 $relatorio->save();
             } catch (\Exception $e) {
@@ -316,9 +348,9 @@ class HorarioController extends Controller
             }
 
             $nomeMateria = $info->nome;
-            $de = $info->start;
-            $ate = $info->end;
-            $path = "/var/www/html/cni/relatorios/$dia/$nomeMateria/$de - $ate/";
+            $de = str_replace(":","-",$info->start);
+            $ate = str_replace(":","-",$info->end);
+            $path = "D:/Aulas/Relatorios/$dia/$nomeMateria/$de - $ate/";
             try { //Try to create the directory
                 $result = File::makeDirectory($path,0777,true,true);
             } catch (\Exception $e) {
@@ -338,7 +370,7 @@ class HorarioController extends Controller
                     $alunosOcorrencia = null;
                 }
                 $conteudo = $dados[0]['conteudo'];
-                $nomeProfessor = Auth::user()->name;
+                $nomeProfessor = Auth::user()->name; //Professor
                 $horario = $de." às ".$ate;
                 $pdf = PDF::loadView('horario.relatorioPDF',compact('alunos','alunosOcorrencia','nomeProfessor','dia','nomeMateria','horario','conteudo'));
                 $pdf->save($path.$nomeRelatorio.'.pdf');
@@ -383,7 +415,7 @@ class HorarioController extends Controller
         $todayComplete = $carbonDate->format('Y-m-d');
         $nomeRelatorio = "relatorio_".$data;
         try {
-            $conteudoDB = DB::table('conteudo')->select('conteudo')->where('horarios_id',$id)->where('data', $todayComplete)->get()->first();
+            $conteudoDB = DB::table('conteudo')->select('conteudo','professores_id')->where('horarios_id',$id)->where('data', $todayComplete)->get()->first();
             if(!isset($conteudoDB)){
                 return 406; //Nenhum conteudo de aula encontrado.
             }
@@ -397,9 +429,9 @@ class HorarioController extends Controller
                 return 406;
             }
             $nomeMateria = $info->nome;
-            $de = $info->start;
-            $ate = $info->end;
-            $path = "/var/www/html/cni/relatorios/$dia/$nomeMateria/$de - $ate/";
+            $de = str_replace(":","-",$info->start);
+            $ate = str_replace(":","-",$info->end);
+            $path = "D:/Aulas/Relatorios/$dia/$nomeMateria/$de - $ate/";
             try { //Try to create the directory
                 $result = File::makeDirectory($path,0777,true,true);
             } catch (\Exception $e) {
@@ -418,7 +450,8 @@ class HorarioController extends Controller
                     $alunosOcorrencia = null;
                 }
                 $conteudo = $conteudoDB->conteudo;
-                $nomeProfessor = Auth::user()->name;
+				$professor = Professor::find($conteudoDB->professores_id);
+				$nomeProfessor = $professor->name;
                 $horario = $de." às ".$ate;
                 $pdf = PDF::loadView('horario.relatorioPDF',compact('alunos','alunosOcorrencia','nomeProfessor','dia','nomeMateria','horario','conteudo'));
                 $pdf->save($path.$nomeRelatorio.'.pdf');

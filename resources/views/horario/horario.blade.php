@@ -11,6 +11,7 @@
     <div class="container" id="horarioPlace">
         <div class="row">
             <div class="newElement"><i class="mdi mdi-plus"></i></div>
+			<a href="?filtro=all" style="display: contents;text-decoration: none"><div class="btn col-sm-2 col-4" style="margin-bottom:30px;margin-top:50px;margin-left: 20px;">Todos</div></a>
         </div>
         @if(count($horarios) == 0)
             <div class="notFound shadow" role="alert" id="noHorario">

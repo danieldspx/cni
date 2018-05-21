@@ -13,6 +13,7 @@ $('#saveRelatorio').click(function(){
             url: "relatorio/salvar",
             data: {_token: _token, conteudo: conteudo},
             success: function(response){
+                console.log(response);
                 switch (parseInt(response)) {
                     case 406:
                         toastr.error('Erro ao salvar o relatório.');

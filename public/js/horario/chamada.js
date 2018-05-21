@@ -3,6 +3,13 @@ $(document).ready(function(){
     toastr.options.progressBar = true;
     toastr.options.closeButton = true;
     toastr.options.preventDuplicates = true;
+	
+	$("#matricula").keypress(function(e) {
+        if(e.which == 13 && e.shiftKey) {
+            e.preventDefault();
+            $('#addAlunoHorario').trigger('click');
+        }
+    });
 });
 
 function fixBugButton(id){
