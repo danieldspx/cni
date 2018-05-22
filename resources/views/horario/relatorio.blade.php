@@ -57,8 +57,10 @@
                         <th scope="col">Matrícula</th>
                         <th scope="col">Nome</th>
                         <th scope="col">Situação</th>
+                        @if(!$isMobile)
                         <th scope="col">Telefone</th>
                         <th scope="col">Celular</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -71,8 +73,10 @@
                                 <th scope="row">{{$aluno->matricula}}</th>
                                 <td>{{$aluno->nome}}</td>
                                 <td>{{$aluno->situacao}}</td>
+                                @if(!$isMobile)
                                 <td>{{$aluno->telefone}}</td>
                                 <td>{{$aluno->celular}}</td>
+                                @endif
                             </tr>
                     @endforeach
                 </tbody>

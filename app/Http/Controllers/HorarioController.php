@@ -13,21 +13,24 @@ use cni\Professor;
 use Carbon\Carbon;
 use PDF;
 use Auth;
+use Jenssegers\Agent\Agent;//Detect Mobile
 /**
  *
  */
 class HorarioController extends Controller
 {
+    private $agent, $today;
     public function __construct()
     {
         $this->middleware('autorizacao');
+        $this->agent = new Agent();
+        $this->today = Carbon::now()->setTimezone('America/Sao_Paulo');
     }
 
     public function getAll()
     {
-        $today = Carbon::now()->setTimezone('America/Sao_Paulo');
-		$dia = $today->dayOfWeek;
-		$hora = $today->format('H:i');
+		$dia = $this->today->dayOfWeek;
+		$hora = $this->today->format('H:i');
         if($dia==0){
             $dia = 1;
         }
@@ -57,7 +60,7 @@ class HorarioController extends Controller
 								->orderBy('materias.nome')
 								->get(); //Gets the classes info.
 					}
-					
+
 				} else {
 					$horarios = DB::table('horarios')
 								->join('dias', 'dias.id', '=', 'dias_id')
@@ -98,8 +101,7 @@ class HorarioController extends Controller
 
     public function chamada($id)//View chamada
     {
-        $carbonDate =  Carbon::now()->setTimezone('America/Sao_Paulo');
-        $todayComplete = $carbonDate->format('Y-m-d');
+        $todayComplete = $this->today->format('Y-m-d');
         $info = DB::table('horarios')
         ->select('materias.nome', DB::raw("DATE_FORMAT(start,'%H:%i') start"), DB::raw("DATE_FORMAT(end,'%H:%i') end"))
         ->join('materias','materias.id','=','horarios.materias_id')
@@ -115,9 +117,9 @@ class HorarioController extends Controller
         } catch (\Exception $e) {
             $isRelatorio = false;
         }
-        $today['day'] = $carbonDate->format('d');
-        $today['month'] = $carbonDate->format('m');
-        $today['year'] = $carbonDate->format('Y');
+        $today['day'] = $this->today->format('d');
+        $today['month'] = $this->today->format('m');
+        $today['year'] = $this->today->format('Y');
 
         $contador = 0;
         foreach ($alunos as $key => $aluno){
@@ -203,7 +205,7 @@ class HorarioController extends Controller
 
     public function newChamada($id)//Cria um novo relatorio
     {
-        $dataHoje = Carbon::now()->setTimezone('America/Sao_Paulo')->format('Y-m-d');
+        $dataHoje = $this->today->format('Y-m-d');
 
         $dados = Request::only(['dataAlunos','horario']); //Get only matricula and horario
         if($id == $dados['horario']){
@@ -250,7 +252,7 @@ class HorarioController extends Controller
 
     public function relatorio($id)
     {
-        $todayComplete = Carbon::now()->setTimezone('America/Sao_Paulo')->format('Y-m-d');
+        $todayComplete = $this->today->format('Y-m-d');
         try {
             $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
             $alunos = DB::select("SELECT alunos.matricula, alunos.telefone_responsavel AS telefone, alunos.celular_responsavel AS celular, alunos.nome, alunos.nascimento, situacoes.nome AS situacao FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :idHorario INNER JOIN relatorios_has_alunos ON relatorios_has_alunos.relatorios_id = :idRelatorio INNER JOIN situacoes ON situacoes.id = relatorios_has_alunos.situacoes_id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.id = relatorios_has_alunos.alunos_id AND alunos.situacao = 1 ORDER By alunos.nome ASC",['idHorario' => $id,'idRelatorio'=>$todaysRelatorio->id]);
@@ -273,8 +275,8 @@ class HorarioController extends Controller
           ->whereRaw('data = ?',[$todayComplete])
           ->whereRaw('horarios_id = ?',[$id])
           ->get()->first();
-
-        return view('horario.relatorio',compact('alunos','alunosOcorrencia','conteudo'));
+        $isMobile = $this->agent->isMobile();
+        return view('horario.relatorio',compact('alunos','alunosOcorrencia','conteudo','isMobile'));
     }
 
     public function ocorrencia($id)
@@ -290,7 +292,7 @@ class HorarioController extends Controller
             $data = Request::only(['alunos_id','descricao']);
             $data['horarios_id'] = $id;
             $data['professores_id'] = Auth::user()->id;//Professor
-            $data['data'] = Carbon::now()->setTimezone('America/Sao_Paulo')->format('Y-m-d');
+            $data['data'] = $this->today->format('Y-m-d');
             DB::table('ocorrencias')->insert($data);
             return 200;
         } catch (\Exception $e) {
@@ -300,8 +302,7 @@ class HorarioController extends Controller
 
     public function salvaRelatorio($id)
     {
-        $carbonDate = Carbon::now()->setTimezone('America/Sao_Paulo');
-        $dia = $carbonDate->dayOfWeek;
+        $dia = $this->today->dayOfWeek;
         switch ($dia){
             case 1:
                 $dia = 'Segunda-feira';
@@ -325,11 +326,11 @@ class HorarioController extends Controller
                 $dia = 'Domingo';
                 break;
         }
-        $data = $carbonDate->format('d-m-Y');
+        $data = $this->today->format('d-m-Y');
         $nomeRelatorio = "relatorio_".$data;
         try {
             $dados[0] = Request::only('conteudo');
-            $dados[0]['data'] = $carbonDate->format('Y-m-d');
+            $dados[0]['data'] = $this->today->format('Y-m-d');
             $dados[0]['professores_id'] = Auth::user()->id;
             $dados[0]['horarios_id'] = $id;
             $verifica = DB::table('conteudo')->where('horarios_id',$id)->where('data', $dados[0]['data'])->get()->first();
@@ -357,7 +358,7 @@ class HorarioController extends Controller
                 return 403;
             }
             try { //Try to save PDF
-                $todayComplete = $carbonDate->format('Y-m-d');
+                $todayComplete = $this->today->format('Y-m-d');
                 $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
 
                 $alunos = DB::select("SELECT alunos.matricula,  alunos.telefone_responsavel AS telefone, alunos.celular_responsavel AS celular, alunos.nome, alunos.nascimento, situacoes.nome AS situacao FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :idHorario INNER JOIN relatorios_has_alunos ON relatorios_has_alunos.relatorios_id = :idRelatorio INNER JOIN situacoes ON situacoes.id = relatorios_has_alunos.situacoes_id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.id = relatorios_has_alunos.alunos_id AND alunos.situacao = 1 ORDER By alunos.nome ASC",['idHorario' => $id,'idRelatorio'=>$todaysRelatorio->id]);
@@ -386,8 +387,7 @@ class HorarioController extends Controller
 
     public function updateRelatorio($id)
     {
-        $carbonDate = Carbon::now()->setTimezone('America/Sao_Paulo');
-        $dia = $carbonDate->dayOfWeek;
+        $dia = $this->today->dayOfWeek;
         switch ($dia){
             case 1:
                 $dia = 'Segunda-feira';
@@ -411,8 +411,8 @@ class HorarioController extends Controller
                 $dia = 'Domingo';
                 break;
         }
-        $data = $carbonDate->format('d-m-Y');
-        $todayComplete = $carbonDate->format('Y-m-d');
+        $data = $this->today->format('d-m-Y');
+        $todayComplete = $this->today->format('Y-m-d');
         $nomeRelatorio = "relatorio_".$data;
         try {
             $conteudoDB = DB::table('conteudo')->select('conteudo','professores_id')->where('horarios_id',$id)->where('data', $todayComplete)->get()->first();

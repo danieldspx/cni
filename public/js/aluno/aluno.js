@@ -80,13 +80,15 @@ $(document).ready(function(){
         var _token = $("#token").val();
         var someEmpty = false;
         for(var key in data){
-            if(data[key] == ""){
+            if(data[key] == "" && (key.search('telefone') != -1 || key.search('responsavel') != -1)){
+                delete data[key];
+            } else {
                 someEmpty = true;
                 break;
             }
         }
         if(someEmpty){
-            toastr.warning('Digite todos os dados!', 'Erro');
+            toastr.warning('Digite os dados essenciais', 'Erro');
         } else { //Good to go
             $.ajax({
                 url: "aluno/adicionar",

@@ -24,7 +24,7 @@ class AlunoController extends Controller
         return view('aluno.aluno');
     }
 
-    public function addAluno()
+    public function addAluno() //Add or Update
     {
         try {
             $params = json_decode(Request::input('data'),true); //JSON to Array
