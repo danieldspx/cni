@@ -73,13 +73,13 @@
             </div>
             <div class="row">
                 <div class="input-field col-sm-11">
-                    <div class="btn col-sm-2" id="addAlunoList" style="margin-right: 10px">Salvar <i class="mdi mdi-account-plus"></i></div>
-                    <div class="btn col-sm-2 red-accent-2" id="clearForm">Limpar <i class="mdi mdi-close"></i></div>
+                    <button class="btn col-sm-2" id="addAlunoList" style="margin-right: 10px">Salvar <i class="mdi mdi-account-plus"></i></button>
+                    <button class="btn col-sm-2 red-accent-2" id="clearForm">Limpar <i class="mdi mdi-close"></i></button>
                 </div>
             </div>
             <div class="row">
                 <div class="input-field col-sm-11">
-                    <div class="btn col-sm-4" id="searchAluno" style="background-color: #f39c12;">Buscar  <i class="mdi mdi-account-search"></i></div>
+                    <button class="btn col-sm-4" id="searchAluno" style="background-color: #f39c12;">Buscar  <i class="mdi mdi-account-search"></i></button>
                 </div>
             </div>
          </div>

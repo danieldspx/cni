@@ -49,7 +49,8 @@ $(document).ready(function(){
 
     $('#alunoLink').addClass('active');
     toastr.options.progressBar = true;
-    toastr.options.closeButton = true
+    toastr.options.closeButton = true;
+    toastr.options.preventDuplicates = true;
 
     $(".showOptions").click(function(element){
         var id = "#"+$(element.target).parent().data('id');
@@ -68,6 +69,7 @@ $(document).ready(function(){
     });
 
     $("#addAlunoList").click(function(){
+		this.disabled = true;
         var data = {};
         data.matricula = $("#matricula").val();
         data.nome = $("#nome").val();
@@ -80,11 +82,13 @@ $(document).ready(function(){
         var _token = $("#token").val();
         var someEmpty = false;
         for(var key in data){
-            if(data[key] == "" && (key.search('telefone') != -1 || key.search('responsavel') != -1)){
-                delete data[key];
-            } else {
-                someEmpty = true;
-                break;
+            if(data[key] == ""){
+				if(key.search('telefone') != -1 || key.search('responsavel') != -1){
+					delete data[key];
+				} else {
+					someEmpty = true;
+					break;
+				}
             }
         }
         if(someEmpty){
@@ -112,5 +116,6 @@ $(document).ready(function(){
             clearForm();
             $('#ativo').prop('checked', true); //Check 'Ativo' option
         }
+		this.disabled = false;
     });
 });

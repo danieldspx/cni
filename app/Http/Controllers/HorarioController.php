@@ -22,9 +22,9 @@ class HorarioController extends Controller
     private $agent, $today;
     public function __construct()
     {
-        $this->middleware('autorizacao');
         $this->agent = new Agent();
         $this->today = Carbon::now()->setTimezone('America/Sao_Paulo');
+	      $this->middleware('autorizacao');
     }
 
     public function getAll()
@@ -214,6 +214,7 @@ class HorarioController extends Controller
             return 409; //Conflito de informações
         }
         try {//Testa se existe relatorio
+            $relatorioExist = true;
             $relatorio = Relatorio::where([
                 ['data',$dataHoje],
                 ['horarios_id',$id]
@@ -247,6 +248,9 @@ class HorarioController extends Controller
                 }
             }
         }
+        //if($relatorioExist){//Se já havia relatorio então atualiza o PDF
+        //    updateRelatorio($id);
+        //}
         return 200;
     }
 
@@ -305,25 +309,25 @@ class HorarioController extends Controller
         $dia = $this->today->dayOfWeek;
         switch ($dia){
             case 1:
-                $dia = 'Segunda-feira';
+                $dia = '1 - Segunda-feira';
                 break;
             case 2:
-                $dia = 'Terca-feira';
+                $dia = '2 - Terca-feira';
                 break;
             case 3:
-                $dia = 'Quarta-feira';
+                $dia = '3 - Quarta-feira';
                 break;
             case 4:
-                $dia = 'Quinta-feira';
+                $dia = '4 - Quinta-feira';
                 break;
             case 5:
-                $dia = 'Sexta-feira';
+                $dia = '5 - Sexta-feira';
                 break;
             case 6:
-                $dia = 'Sabado';
+                $dia = '6 - Sabado';
                 break;
             default:
-                $dia = 'Domingo';
+                $dia = '7 - Domingo';
                 break;
         }
         $data = $this->today->format('d-m-Y');
