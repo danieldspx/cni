@@ -72,11 +72,11 @@ $(document).ready(function(){
 		this.disabled = true;
         var data = {};
         data.matricula = $("#matricula").val();
-        data.nome = $("#nome").val();
+        data.nome = $("#nome").val().toUpperCase();
         data.nascimento = $("#nascimento").val();
         data.situacao = $("input[name=situacao]:checked").val();
         data.telefone = $("#telefone").val();
-        data.nome_responsavel = $("#nome_responsavel").val();
+        data.nome_responsavel = $("#nome_responsavel").val().toUpperCase();
         data.telefone_responsavel = $("#telefone_responsavel").val();
         data.celular_responsavel = $("#celular_responsavel").val();
         var _token = $("#token").val();

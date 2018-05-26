@@ -17,6 +17,8 @@ Route::get('/',function(){
 
 Route::get('/horario', 'HorarioController@getAll')->name('horario');
 
+Route::get('/teste', 'HorarioController@teste');
+
 Route::post('/horario/adicionar', 'HorarioController@addHorario');
 
 Route::get('/horario/{id}','HorarioController@getHorario')->where('id','[0-9]+');

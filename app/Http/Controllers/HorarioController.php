@@ -27,56 +27,73 @@ class HorarioController extends Controller
 	      $this->middleware('autorizacao');
     }
 
-    public function getAll()
-    {
-		$dia = $this->today->dayOfWeek;
-		$hora = $this->today->format('H:i');
+    public function getAll(){
+		    $dia = $this->today->dayOfWeek;
+	      $hora = $this->today->format('H:i');
         if($dia==0){
             $dia = 1;
         }
         try {
-				if(Request::input('filtro')!='all'){
-					if(Auth::user()->access == 3){
-						$horarios = DB::table('horarios')
-								->join('dias', 'dias.id', '=', 'dias_id')
-								->join('materias', 'materias.id', '=', 'materias_id')
-								->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia','horarios.dias_id', DB::raw("DATE_FORMAT(end,'%H:%i') end"), DB::raw("DATE_FORMAT(start,'%H:%i') start"))
-								->where('dias_id',$dia)
-								->where('horarios.end','>=',$hora)
-								->whereBetween('materias.id', [1, 7])
-								->orderBy('dias.id')
-								->orderBy('start')
-								->orderBy('materias.nome')
-								->get(); //Gets the classes info.
-					} else {
-						$horarios = DB::table('horarios')
-								->join('dias', 'dias.id', '=', 'dias_id')
-								->join('materias', 'materias.id', '=', 'materias_id')
-								->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia','horarios.dias_id', DB::raw("DATE_FORMAT(end,'%H:%i') end"), DB::raw("DATE_FORMAT(start,'%H:%i') start"))
-								->where('dias_id',$dia)
-								->where('horarios.end','>=',$hora)
-								->orderBy('dias.id')
-								->orderBy('start')
-								->orderBy('materias.nome')
-								->get(); //Gets the classes info.
-					}
-
-				} else {
-					$horarios = DB::table('horarios')
-								->join('dias', 'dias.id', '=', 'dias_id')
-								->join('materias', 'materias.id', '=', 'materias_id')
-								->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia','horarios.dias_id', DB::raw("DATE_FORMAT(end,'%H:%i') end"), DB::raw("DATE_FORMAT(start,'%H:%i') start"))
-								->orderBy('dias.id')
-								->orderBy('start')
-								->orderBy('materias.nome')
-								->get(); //Gets the classes info.
-				}
+            $search = DB::table('horarios')
+                      ->join('dias', 'dias.id', '=', 'dias_id')
+                      ->join('materias', 'materias.id', '=', 'materias_id')
+                      ->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia','horarios.dias_id', DB::raw("DATE_FORMAT(end,'%H:%i') end"), DB::raw("DATE_FORMAT(start,'%H:%i') start"))
+                      ->orderBy('dias.id')
+                      ->orderBy('start')
+                      ->orderBy('materias.nome');
+    				if(Request::input('filtro')!='all'){
+                $search->where('dias_id',$dia)
+                       ->where('horarios.end','>=',$hora);
+      					if(Auth::user()->access == 3){//Informatica
+      							$search->whereBetween('materias.id', [1, 7]); //Gets the classes info.
+      					} else if(Auth::user()->access == 4){ //Ingles
+      							$search->where('materias.id',8);
+      					} else if(Auth::user()->access == 5){//Gestao
+                    $search->where('materias.id',9);
+                }
+    				}
+            $horarios = $search->get();
         } catch (\Exception $e) {
             $horarios = array();
         }
         $materias = Materia::all();
         $dias = Dia::all();
         return view('horario.horario')->with(compact('horarios','materias','dias'));
+    }
+
+    public function checkConflict($matricula,$id){
+        try {
+            $horario = Horario::where('materias_id',$id)->firstOrFail();
+            try {
+                $aluno = Aluno::where('matricula',$matricula)->firstOrFail();
+                $horariosCadastrado = DB::table('horarios_has_alunos')
+                ->select(DB::raw("DATE_FORMAT(horarios.end,'%H:%i') end"), DB::raw("DATE_FORMAT(horarios.start,'%H:%i') start"))
+                ->join('horarios','horarios.id','=','horarios_id')
+                ->where('alunos_id',$aluno->id)->get();
+                $gtg = true;
+            if(count($horariosCadastrado) != 0){//Horarios Cadastrados
+                foreach ($horariosCadastrado as $horarioCadastrado) {
+                    $inicioC = $horarioCadastrado->start;
+                    $fimC = $horarioCadastrado->end;
+                    $inicio = $horario->start;
+                    $fim = $horario->end;
+                    if(($inicio > $inicioC && $inicio < $fimC) || ($fim > $inicioC && $fim < $fimC)){//Conflict
+                        return false;
+                    }
+                }
+                if($gtg){//Good to go
+                    return true;
+                }
+            } else {//Good to go
+                return true;
+            }
+
+            } catch (\Exception $e) {//Aluno not found
+                return false;
+            }
+        } catch (\Exception $e) {//Horario not found
+            return false;
+        }
     }
 
     public function addHorario()
@@ -394,25 +411,25 @@ class HorarioController extends Controller
         $dia = $this->today->dayOfWeek;
         switch ($dia){
             case 1:
-                $dia = 'Segunda-feira';
+                $dia = '1 - Segunda-feira';
                 break;
             case 2:
-                $dia = 'Terca-feira';
+                $dia = '2 - Terca-feira';
                 break;
             case 3:
-                $dia = 'Quarta-feira';
+                $dia = '3 - Quarta-feira';
                 break;
             case 4:
-                $dia = 'Quinta-feira';
+                $dia = '4 - Quinta-feira';
                 break;
             case 5:
-                $dia = 'Sexta-feira';
+                $dia = '5 - Sexta-feira';
                 break;
             case 6:
-                $dia = 'Sabado';
+                $dia = '6 - Sabado';
                 break;
             default:
-                $dia = 'Domingo';
+                $dia = '7 - Domingo';
                 break;
         }
         $data = $this->today->format('d-m-Y');
@@ -454,8 +471,8 @@ class HorarioController extends Controller
                     $alunosOcorrencia = null;
                 }
                 $conteudo = $conteudoDB->conteudo;
-				$professor = Professor::find($conteudoDB->professores_id);
-				$nomeProfessor = $professor->name;
+	              $professor = Professor::find($conteudoDB->professores_id);
+		            $nomeProfessor = $professor->name;
                 $horario = $de." às ".$ate;
                 $pdf = PDF::loadView('horario.relatorioPDF',compact('alunos','alunosOcorrencia','nomeProfessor','dia','nomeMateria','horario','conteudo'));
                 $pdf->save($path.$nomeRelatorio.'.pdf');
