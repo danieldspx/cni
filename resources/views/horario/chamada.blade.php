@@ -1,7 +1,7 @@
 @extends('layouts.main')
 
 @section('head')
-    <link rel="stylesheet" href="{{ URL::asset('css/material.css') }}">
+    <link rel="stylesheet" href="{{ URL::asset('css/shared/material.css') }}">
     <link rel="stylesheet" href="{{ URL::asset('node_modules/sweet-dropdown/dist/min/jquery.sweet-dropdown.min.css') }}">
     <link rel="stylesheet" href="{{ URL::asset('css/horario/chamada.css') }}">
 @stop
@@ -111,8 +111,8 @@
 @stop
 
 @section('script')
-    <script src="{{ URL::asset('js/material.js') }}"></script>
+    <script src="{{ URL::asset('js/shared/material.js') }}"></script>
     <script src="{{ URL::asset('node_modules/sweet-dropdown/dist/min/jquery.sweet-dropdown.min.js') }}"></script>
     <script src="{{ URL::asset('js/horario/chamada.js') }}"></script>
-    <script src="{{ URL::asset('js/searchAluno.js') }}"></script>
+    <script src="{{ URL::asset('js/shared/searchAluno.js') }}"></script>
 @stop

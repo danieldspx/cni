@@ -3,7 +3,7 @@
 @section('head')
     <link rel="stylesheet" href="{{ URL::asset('node_modules/animate.css/animate.min.css') }}">
     <link rel="stylesheet" href="{{ URL::asset('node_modules/toastr/build/toastr.min.css') }}">
-    <link rel="stylesheet" href="{{ URL::asset('css/material.css') }}">
+    <link rel="stylesheet" href="{{ URL::asset('css/shared/material.css') }}">
     <link rel="stylesheet" href="{{ URL::asset('node_modules/sweet-dropdown/dist/min/jquery.sweet-dropdown.min.css') }}">
     <link rel="stylesheet" href="{{ URL::asset('css/aluno/aluno.css') }}">
 @stop
@@ -88,9 +88,9 @@
 
 @section('script')
     <script src="{{ URL::asset('node_modules/toastr/build/toastr.min.js') }}"></script>
-    <script src="{{ URL::asset('js/material.js') }}"></script>
+    <script src="{{ URL::asset('js/shared/material.js') }}"></script>
     <script src="{{ URL::asset('node_modules/sweet-dropdown/dist/min/jquery.sweet-dropdown.min.js') }}"></script>
     <script src="{{ URL::asset('node_modules/jquery-mask-plugin/dist/jquery.mask.min.js') }}"></script>
     <script src="{{ URL::asset('js/aluno/aluno.js') }}"></script>
-    <script src="{{ URL::asset('js/searchAluno.js') }}"></script>
+    <script src="{{ URL::asset('js/shared/searchAluno.js') }}"></script>
 @stop

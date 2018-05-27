@@ -3,7 +3,7 @@
 @section('head')
     <link rel="stylesheet" href="{{ URL::asset('node_modules/animate.css/animate.min.css') }}">
     <link rel="stylesheet" href="{{ URL::asset('node_modules/toastr/build/toastr.min.css') }}">
-    <link rel="stylesheet" href="{{ URL::asset('css/material.css') }}">
+    <link rel="stylesheet" href="{{ URL::asset('css/shared/material.css') }}">
     <link rel="stylesheet" href="{{ URL::asset('css/horario/ocorrencia.css') }}">
 @stop
 
@@ -61,6 +61,6 @@
 
 @section('script')
     <script src="{{ URL::asset('node_modules/toastr/build/toastr.min.js') }}"></script>
-    <script src="{{ URL::asset('js/material.js') }}"></script>
+    <script src="{{ URL::asset('js/shared/material.js') }}"></script>
     <script src="{{ URL::asset('js/horario/ocorrencia.js') }}"></script>
 @stop

@@ -19,15 +19,17 @@ use Jenssegers\Agent\Agent;//Detect Mobile
  */
 class HorarioController extends Controller
 {
-    private $agent, $today;
+    private $agent, $today, $msg;
     public function __construct()
     {
         $this->agent = new Agent();
         $this->today = Carbon::now()->setTimezone('America/Sao_Paulo');
-	      $this->middleware('autorizacao');
+        $this->message['type'] = 'error';
+        $this->middleware('autorizacao');
     }
 
-    public function getAll(){
+    public function getAll()
+    {
 		    $dia = $this->today->dayOfWeek;
 	      $hora = $this->today->format('H:i');
         if($dia==0){
@@ -61,7 +63,8 @@ class HorarioController extends Controller
         return view('horario.horario')->with(compact('horarios','materias','dias'));
     }
 
-    public function checkConflict($matricula,$id){
+    public function checkConflict($matricula,$id)
+    {
         try {
             $horario = Horario::where('materias_id',$id)->firstOrFail();
             try {
@@ -100,14 +103,17 @@ class HorarioController extends Controller
     {
         try {
             $params = json_decode(Request::input('data'),true); //JSON to ARRAY
+            return var_dump($params);
             $horario = new Horario($params);
             $horario->save();
-            $data['code'] = "200";
+            $this->message['type'] = 'success';
+            $this->message['text'] = 'Horário adicionado!';
+            return json_encode($data);
             $data['id'] = $horario->id;
         } catch (\Exception $e) {
-            $data['code'] = "200";
+            $this->message['text'] = 'Erro ao incluir no banco de dados!';
+            return json_encode($this->message);
         }
-        return json_encode($data);
     }
 
     public function getHorario($id)
@@ -177,21 +183,30 @@ class HorarioController extends Controller
     {
         $dados = Request::only(['matricula','horario']); //Get only matricula and horario
         if($id != $dados['horario']){
-            return 409; //Conflito de informações
+            $this->message['text'] = 'Conflito de informações. Tente novamente.';
+            return json_encode($this->message);
         } else { //Good to go
             try { //Try to find Aluno
                 $aluno = Aluno::where('matricula', $dados['matricula'])->firstOrFail();
-                try { //Try to insert Aluno into the Class
-                    DB::table('horarios_has_alunos')->insert(
-                        ['horarios_id' => $id, 'alunos_id' => $aluno->id]
-                    );
-                    return 200; //Adicionado com sucesso
-                } catch (\Exception $e) { //Not possible to insert
-                    return 406; //Erro ao adicionar o aluno.
+                if($this->checkConflict($aluno->id,$id)){//Add Aluno if there isn't any conflict
+                    try { //Try to insert Aluno into the Class
+                        DB::table('horarios_has_alunos')->insert(
+                            ['horarios_id' => $id, 'alunos_id' => $aluno->id]
+                        );
+                        $this->message['type'] = 'success';
+                        $this->message['text'] = 'Aluno adicionado com sucesso!';
+                        return json_encode($this->message);
+                    } catch (\Exception $e) { //Not possible to insert
+                        $this->message['text'] = 'Não foi possível adicionar o aluno.';
+                        return json_encode($this->message);
+                    }
+                } else {//Conflict between Horarios
+                    $this->message['text'] = 'Conflito de horários.';
+                    return json_encode($this->message);
                 }
-
             } catch (\Exception $e) { //Aluno not found
-                return 404; //Aluno nao encontrado
+                $this->message['text'] = 'Aluno não encontrado.';
+                return json_encode($this->message);
             }
         }
     }
@@ -200,7 +215,8 @@ class HorarioController extends Controller
     {
         $dados = Request::only(['matricula','horario']); //Get only matricula and horario
         if($id != $dados['horario']){
-            return 409; //Conflito de informações
+            $this->message['text'] = 'Conflito de informações. Tente novamente.';
+            return json_encode($this->message);
         } else { //Good to go
             try { //Try to remove Aluno from chamada
                 $aluno = Aluno::where('matricula', $dados['matricula'])->firstOrFail();
@@ -209,13 +225,16 @@ class HorarioController extends Controller
                     ->where('horarios_id',$id)
                     ->where('alunos_id',$aluno->id)
                     ->delete();
-                    return 200; //Deletado com sucesso
-                } catch (\Exception $e) { //Not possible to insert
-                    return 406; //Erro ao remover o aluno.
+                    $this->message['type'] = 'success';
+                    $this->message['text'] = 'Aluno removido com sucesso!';
+                    return json_encode($this->message);
+                } catch (\Exception $e) { //Not possible to delete
+                    $this->message['text'] = 'Não foi possível remover o aluno.';
+                    return json_encode($this->message);
                 }
-
             } catch (\Exception $e) { //Aluno not found
-                return 404; //Aluno nao encontrado
+                $this->message['text'] = 'Aluno não encontrado.';
+                return json_encode($this->message);
             }
         }
     }
@@ -228,7 +247,8 @@ class HorarioController extends Controller
         if($id == $dados['horario']){
             $alunos = json_decode($dados['dataAlunos'],true);
         } else {
-            return 409; //Conflito de informações
+            $this->message['text'] = 'Conflito de informações. Tente novamente.';
+            return json_encode($this->message);
         }
         try {//Testa se existe relatorio
             $relatorioExist = true;
@@ -244,7 +264,9 @@ class HorarioController extends Controller
                 $relatorio = new Relatorio($params);
                 $relatorio->save();
             } catch (\Exception $e) {
-                return 406; //Relatorio não criado
+                $this->message['title'] = 'Erro';
+                $this->message['text'] = 'Chamada não salva.';//Relatorio não criado
+                return json_encode($this->message);
             }
         }
 
@@ -261,14 +283,17 @@ class HorarioController extends Controller
                     $aluno['relatorios_id'] = $relatorio->id;
                     DB::table('relatorios_has_alunos')->insert($aluno);
                 } catch (\Exception $e) {
-                    return 417; //Error INSERT and UPDATE
+                    $this->message['text'] = 'Dados dos Alunos não foram salvos. Tente novamente.';
+                    return json_encode($this->message);
                 }
             }
         }
         //if($relatorioExist){//Se já havia relatorio então atualiza o PDF
         //    updateRelatorio($id);
         //}
-        return 200;
+        $this->message['type'] = 'success';
+        $this->message['text'] = 'Chamada salva com sucesso!';
+        return json_encode($this->message);
     }
 
     public function relatorio($id)
@@ -315,9 +340,12 @@ class HorarioController extends Controller
             $data['professores_id'] = Auth::user()->id;//Professor
             $data['data'] = $this->today->format('Y-m-d');
             DB::table('ocorrencias')->insert($data);
-            return 200;
+            $this->message['type'] = 'success';
+            $this->message['text'] = 'Ocorrência salva com sucesso.';
+            return json_encode($this->message);
         } catch (\Exception $e) {
-            return 406;
+            $this->message['text'] = 'Erro ao salvar a ocorrência.';
+            return json_encode($this->message);
         }
     }
 
@@ -363,10 +391,11 @@ class HorarioController extends Controller
                 $info = DB::table('horarios')
                 ->select('materias.nome', DB::raw("DATE_FORMAT(start,'%H:%i') start"), DB::raw("DATE_FORMAT(end,'%H:%i') end"))
                 ->join('materias','materias.id','=','horarios.materias_id')
-                ->whereRaw("horarios.id = :id",['id'=>$id])
+                ->where("horarios.id",$id)
                 ->first();
             } catch (\Exception $e) {
-                return 406;
+                $this->message['text'] = 'Erro ao buscar no banco de dados.';
+                return json_encode($this->message);
             }
 
             $nomeMateria = $info->nome;
@@ -376,7 +405,8 @@ class HorarioController extends Controller
             try { //Try to create the directory
                 $result = File::makeDirectory($path,0777,true,true);
             } catch (\Exception $e) {
-                return 403;
+                $this->message['text'] = 'Erro ao criar diretório.';
+                return json_encode($this->message);
             }
             try { //Try to save PDF
                 $todayComplete = $this->today->format('Y-m-d');
@@ -396,13 +426,17 @@ class HorarioController extends Controller
                 $horario = $de." às ".$ate;
                 $pdf = PDF::loadView('horario.relatorioPDF',compact('alunos','alunosOcorrencia','nomeProfessor','dia','nomeMateria','horario','conteudo'));
                 $pdf->save($path.$nomeRelatorio.'.pdf');
-                return 200;
+                $this->message['type'] = 'success';
+                $this->message['text'] = 'Relatório salvo com sucesso.';
+                return json_encode($this->message);
             } catch (\Exception $e) {
-                return 406;
+                $this->message['text'] = 'Erro ao salvar o relatório.';
+                return json_encode($this->message);
             }
 
         } catch (\Exception $e) {
-            return 406;
+            $this->message['text'] = 'Erro ao salvar o relatório.';
+            return json_encode($this->message);
         }
     }
 
@@ -447,7 +481,8 @@ class HorarioController extends Controller
                 ->where("horarios.id",$id)
                 ->first();
             } catch (\Exception $e) {
-                return 406;
+                $this->message['text'] = 'Erro ao buscar no banco de dados.';
+                return json_encode($this->message);
             }
             $nomeMateria = $info->nome;
             $de = str_replace(":","-",$info->start);
@@ -456,7 +491,8 @@ class HorarioController extends Controller
             try { //Try to create the directory
                 $result = File::makeDirectory($path,0777,true,true);
             } catch (\Exception $e) {
-                return 403;
+                $this->message['text'] = 'Erro ao criar diretório.';
+                return json_encode($this->message);
             }
             try { //Try to save PDF
                 $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
@@ -476,14 +512,17 @@ class HorarioController extends Controller
                 $horario = $de." às ".$ate;
                 $pdf = PDF::loadView('horario.relatorioPDF',compact('alunos','alunosOcorrencia','nomeProfessor','dia','nomeMateria','horario','conteudo'));
                 $pdf->save($path.$nomeRelatorio.'.pdf');
-                return 200;
+                $this->message['type'] = 'success';
+                $this->message['text'] = 'Relatório atualizado com sucesso.';
+                return json_encode($this->message);
             } catch (\Exception $e) {
-                return 406;
+                $this->message['text'] = 'Erro ao atualizar o relatório. Verifique se ele está sendo usado pela Recepção.';
+                return json_encode($this->message);
             }
 
         } catch (\Exception $e) {
-            return $e->getMessage();
-            return 406;
+            $this->message['text'] = 'Erro ao atualizar o relatório.';
+            return json_encode($this->message);
         }
     }
 

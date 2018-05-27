@@ -7,8 +7,10 @@ use cni\Aluno;
 
 class AlunoController extends Controller
 {
+    private $msg;
     public function __construct()
     {
+        $this->message['type'] = 'error';
         $this->middleware('autorizacao');
     }
 
@@ -55,7 +57,8 @@ class AlunoController extends Controller
                 $aluno->nascimento = $this->dateConverter($aluno->nascimento);
                 return json_encode($aluno);
             } catch (\Exception $e) {
-                return 400;
+                $this->message['text'] = 'Matrícula não encontrada!';
+                return json_encode($this->message);
             }
         } else {
             try {//Try find by nome
@@ -65,9 +68,12 @@ class AlunoController extends Controller
                     $aluno->nascimento = $this->dateConverter($aluno->nascimento);
                     $alunos[$key] = $aluno;
                 }
-                return json_encode($alunos);
+                $this->message['type'] = 'success';
+                $this->message['data'] = $alunos;
+                return json_encode($this->message);
             } catch (\Exception $e) {
-                return 404;
+                $this->message['text'] = 'Nome não encontrado!';
+                return json_encode($this->message);
             }
         }
     }

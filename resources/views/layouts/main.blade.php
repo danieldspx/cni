@@ -7,7 +7,7 @@
         <link rel="sortcut icon" href="{{ URL::asset('img/favicon/icon.png') }}" type="image/png">
         <title>CNI</title>
         <!-- Normalize CSS -->
-        <link rel="stylesheet" href="{{ URL::asset('css/normalize.css') }}">
+        <link rel="stylesheet" href="{{ URL::asset('css/shared/normalize.css') }}">
         <!-- Material Design Icons -->
         <link rel="stylesheet" href="{{ URL::asset('node_modules/mdi/css/materialdesignicons.min.css') }}">
         <!-- Bootstrap -->
@@ -44,6 +44,8 @@
         <script src="{{ URL::asset('node_modules/bootstrap/dist/js/bootstrap.min.js') }}"></script>
         <!-- Toast Notification -->
         <script src="{{ URL::asset('node_modules/toastr/build/toastr.min.js') }}"></script>
+        <!-- Toast Notification Handler-->
+        <script src="{{ URL::asset('js//shared/toastNotifications.js') }}"></script>
         @yield('script')
     </body>
 </html>

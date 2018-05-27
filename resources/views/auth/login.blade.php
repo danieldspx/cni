@@ -6,7 +6,7 @@
     <link rel="sortcut icon" href="{{ URL::asset('img/favicon/icon.png') }}" type="image/png">
     <title>CNI</title>
     <!-- Normalize CSS -->
-    <link rel="stylesheet" href="{{ URL::asset('css/normalize.css') }}">
+    <link rel="stylesheet" href="{{ URL::asset('css/shared/normalize.css') }}">
     <!-- Material Design Icons -->
     <link rel="stylesheet" href="{{ URL::asset('node_modules/mdi/css/materialdesignicons.min.css') }}">
     <!-- Animate CSS -->
@@ -14,7 +14,7 @@
     <!-- Materialize -->
     <link rel="stylesheet"  href="{{ URL::asset('node_modules/materialize-css/dist/css/materialize.min.css') }}">
     <!-- Main CSS -->
-    <link rel="stylesheet" href="{{ URL::asset('css/login.css') }}">
+    <link rel="stylesheet" href="{{ URL::asset('css/login/login.css') }}">
     <!-- Toast -->
     <link rel="stylesheet" href="{{ URL::asset('node_modules/toastr/build/toastr.min.css') }}">
 </head>

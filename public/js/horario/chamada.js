@@ -1,9 +1,5 @@
 $(document).ready(function(){
     $('#chamadaLink').addClass('active');
-    toastr.options.progressBar = true;
-    toastr.options.closeButton = true;
-    toastr.options.preventDuplicates = true;
-
 	$("#matricula").keypress(function(e) {
         if(e.which == 13 && e.shiftKey) {
             e.preventDefault();
@@ -65,21 +61,12 @@ $("#addAlunoHorario").click(function(){
             method: 'POST',
             data: {"matricula": matricula, "horario": idHorario, "_token": _token},
             success: function(response){
-                switch (parseInt(response)) {
-                    case 409:
-                        toastr.error('Conflito de informações. Tente novamente.', 'Erro');
-                        break;
-                    case 406:
-                        toastr.error('Não foi possível adicionar o aluno.', 'Erro');
-                        break;
-                    case 404:
-                        toastr.error('Aluno não encontrado.', 'Erro');
-                        break;
-                    default:
-                        toastr.success('Aluno adicionado com sucesso!', 'Sucesso');
+                pushMessage(response,function(code){
+                    if(code = 'success'){
                         $('#nome').val('');
                         $('#matricula').val('');
-                }
+                    }
+                });
             }
         });
     } else {
@@ -98,23 +85,13 @@ $("#removeAlunoHorario").click(function(){
             method: 'POST',
             data: {"matricula": matricula, "horario": idHorario, "_token": _token},
             success: function(response){
-                switch (parseInt(response)) {
-                    case 409:
-                        toastr.error('Conflito de informações. Tente novamente.', 'Erro');
-                        break;
-                    case 406:
-                        toastr.error('Não foi possível remover o aluno.', 'Erro');
-                        break;
-                    case 404:
-                        toastr.error('Aluno não encontrado.', 'Erro');
-                        break;
-                    default:
-                        toastr.success('Aluno removido com sucesso!', 'Sucesso');
+                pushMessage(response,function(code){
+                    if(code = 'success'){
                         $('#nome').val('');
                         $('#matricula').val('');
                         $('div.alunoContainer[data-matricula='+matricula+"]").remove();
-
-                }
+                    }
+                });
             }
         });
     } else {
@@ -185,53 +162,9 @@ $('#saveChamada').click(function(){
             method: "POST",
             data: {"dataAlunos":JSON.stringify(dataAlunos),"horario": idHorario,"_token":_token},
             success: function(response){
-                console.log(response);
-                switch (parseInt(response)) {
-                    case 409:
-                        toastr.error('Conflito de informações. Tente novamente.', 'Erro');
-                        break;
-                    case 406:
-                        toastr.error('Não foi possível criar a chamada.', 'Erro');
-                        break;
-                    case 417:
-                        toastr.error('Dados dos Alunos não foram salvos', 'Erro');
-                        break;
-                    default:
-                        toastr.success('Chamada salva com sucesso!', 'Sucesso');
-                }
+                pushMessage(response);
             }
         });
-    }
-});
-
-$("#buscarAlunoHorario").click(function(){
-    var idHorario = horarioId();
-    var _token = $("#token").val();
-    var nomeAluno = $("#nome").val();
-    if(nomeAluno.length != 0){
-        $.ajax({
-            url: "chamada/buscaAluno",
-            method: "POST",
-            data: {"dataAlunos":JSON.stringify(dataAlunos),"horario": idHorario,"_token":_token},
-            success: function(response){
-                console.log(response);
-                switch (parseInt(response)) {
-                    case 409:
-                        toastr.error('Conflito de informações. Tente novamente.', 'Erro');
-                        break;
-                    case 406:
-                        toastr.error('Não foi possível criar a chamada.', 'Erro');
-                        break;
-                    case 417:
-                        toastr.error('Dados dos Alunos não foram salvos', 'Erro');
-                        break;
-                    default:
-                        toastr.success('Chamada salva com sucesso!', 'Sucesso');
-                }
-            }
-        });
-    } else {
-        toastr.warning('Digite o nome do aluno.', 'Atenção');
     }
 });
 

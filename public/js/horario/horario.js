@@ -13,9 +13,6 @@ $("#addHorarioList").click(function(){
     data.start = $("#startNH").val();
     data.end = $("#endNH").val();
     var _token = $("#token").val();
-
-    toastr.options.progressBar = true;
-    toastr.options.closeButton = true;
     var someEmpty = false;
     for(var key in data){
         if(data[key] == ""){
@@ -31,6 +28,7 @@ $("#addHorarioList").click(function(){
             method: "POST",
             data: {"data":JSON.stringify(data),"_token":_token},
             success: function(response){
+                pushMessage(response);
                 var horario = JSON.parse(response);
                 var htmlPiece = "<div class='row'>\
                                     <a href='horario/"+horario.id+"' class='linkHorario'>\
@@ -43,17 +41,6 @@ $("#addHorarioList").click(function(){
                 $("#horarioPlace").append(htmlPiece); //Add new Horario
                 if ($('#noHorario').length) {
                     $('#noHorario').remove();
-                }
-                switch (parseInt(horario.code)) {
-                    case 400:
-                        toastr.error('Erro ao incluir no Banco de dados!', 'Erro');
-                        break;
-                    case 401:
-                        toastr.warning('Digite todos os dados!', 'Erro');
-                        break;
-                    default:
-                        toastr.success('Horário adicionado!', 'Sucesso');
-                        break;
                 }
             }
         });

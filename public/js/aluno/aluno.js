@@ -48,9 +48,6 @@ $(document).ready(function(){
     $('#celular_responsavel').mask('(00) 00000-0000');
 
     $('#alunoLink').addClass('active');
-    toastr.options.progressBar = true;
-    toastr.options.closeButton = true;
-    toastr.options.preventDuplicates = true;
 
     $(".showOptions").click(function(element){
         var id = "#"+$(element.target).parent().data('id');

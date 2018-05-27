@@ -47,35 +47,33 @@ function searchAluno(){
                 clearResults();
             },
             success: function(response){
-                if(parseInt(response) == 400){
-                    toastr.error('Matrícula não encontrada!', 'Erro');
-                } else if(parseInt(response) == 404){
-                    toastr.error('Nome não encontrado!', 'Erro');
-                } else {
-                    var alunos = JSON.parse(response);
-                    if(!Array.isArray(alunos)){
-                        populateForm(alunos);
-                    } else {
-                        searchAlunos = alunos; //Set to global scope
-                        $('#content-search').empty(); //Clear dropdown data
-                        for(var key in alunos){
-                            if(alunos.hasOwnProperty(key)){
-                                var html = "<li class='aluno-option'>\
-                                                <a data-key='"+key+"'>"
-                                                    +alunos[key]['nome']+
-                                                "</a>\
-                                            </li>";
-                                $('#content-search').append(html); //Add dropdown data
+                pushMessage(response,function(type){
+                    if(type == 'success'){
+                        var alunos = JSON.parse(response).data;//Specifically this case has data inside the message JSON
+                        if(!Array.isArray(alunos)){
+                            populateForm(alunos);
+                        } else {
+                            searchAlunos = alunos; //Set to global scope
+                            $('#content-search').empty(); //Clear dropdown data
+                            for(var key in alunos){
+                                if(alunos.hasOwnProperty(key)){
+                                    var html = "<li class='aluno-option'>\
+                                                    <a data-key='"+key+"'>"
+                                                        +alunos[key]['nome']+
+                                                    "</a>\
+                                                </li>";
+                                    $('#content-search').append(html); //Add dropdown data
+                                }
                             }
+                            $('#nome').sweetDropdown('attach', '#dropdown-alunos');
+                            $('#nome').sweetDropdown('enable');
+                            setTimeout(function(){
+                                $('#nome').sweetDropdown('show');
+                            },200);
                         }
-                        $('#nome').sweetDropdown('attach', '#dropdown-alunos');
-                        $('#nome').sweetDropdown('enable');
-                        setTimeout(function(){
-                            $('#nome').sweetDropdown('show');
-                        },200);
+                        updateMaterial(); //Update Labels
                     }
-                    updateMaterial(); //Update Labels
-                }
+                });
             }
         });
     }

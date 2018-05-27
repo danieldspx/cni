@@ -1,7 +1,7 @@
 @extends('layouts.main')
 
 @section('head')
-    <link rel="stylesheet" href="{{ URL::asset('css/material.css') }}">
+    <link rel="stylesheet" href="{{ URL::asset('css/shared/material.css') }}">
     <link rel="stylesheet" href="{{ URL::asset('css/horario/relatorio.css') }}">
 @stop
 
@@ -127,6 +127,6 @@
 @stop
 
 @section('script')
-    <script src="{{ URL::asset('js/material.js') }}"></script>
+    <script src="{{ URL::asset('js/shared/material.js') }}"></script>
     <script src="{{ URL::asset('js/horario/relatorio.js') }}"></script>
 @stop
