@@ -51,7 +51,7 @@
                </div>
                 <div class="row">
                     <div class="input-field col-sm-10">
-                        <div class="btn col-sm-12" id="addOcorrencia">Adicionar <i class="mdi mdi-plus-circle-outline"></i></div>
+                        <button class="btn col-sm-12" id="addOcorrencia">Adicionar <i class="mdi mdi-plus-circle-outline"></i></button>
                     </div>
                 </div>
             </div>

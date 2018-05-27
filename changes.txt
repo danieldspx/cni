@@ -1,2 +1,0 @@
-    Pasta para arquivos compartilhados
-    Biblioteca JS para padronizar toast, a mensagem e enviada pelo proprio PHP

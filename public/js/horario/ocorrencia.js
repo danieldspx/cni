@@ -13,6 +13,7 @@ $('.setOcorrencia').click(function(){
 });
 
 $('#addOcorrencia').click(function(){
+    this.disabled = true;
     var idAluno = $('#idAluno').val();
     var descricao = $('#descricao').val();
     var _token = $("#token").val();
@@ -22,7 +23,13 @@ $('#addOcorrencia').click(function(){
             url: "ocorrencia/adicionar",
             data: {"alunos_id":idAluno,"descricao": descricao,"_token":_token},
             success: function(response){
-                pushMessage(response);
+                console.log(response);
+                pushMessage(response,function(){
+                    $('#descricao').val("");
+                    $('#idAluno').val("");
+                    closePanel();
+                    this.disabled = false;
+                });
             }
         });
     } else {

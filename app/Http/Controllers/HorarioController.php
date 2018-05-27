@@ -10,6 +10,7 @@ use cni\Dia;
 use cni\Aluno;
 use cni\Relatorio;
 use cni\Professor;
+use cni\Ocorrencia;
 use Carbon\Carbon;
 use PDF;
 use Auth;
@@ -28,7 +29,7 @@ class HorarioController extends Controller
         $this->middleware('autorizacao');
     }
 
-    public function getAll()
+    public function getAll()//Pega todos os horarios
     {
 		    $dia = $this->today->dayOfWeek;
 	      $hora = $this->today->format('H:i');
@@ -36,25 +37,25 @@ class HorarioController extends Controller
             $dia = 1;
         }
         try {
-            $search = DB::table('horarios')
-                      ->join('dias', 'dias.id', '=', 'dias_id')
-                      ->join('materias', 'materias.id', '=', 'materias_id')
-                      ->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia','horarios.dias_id', DB::raw("DATE_FORMAT(end,'%H:%i') end"), DB::raw("DATE_FORMAT(start,'%H:%i') start"))
-                      ->orderBy('dias.id')
-                      ->orderBy('start')
-                      ->orderBy('materias.nome');
-    				if(Request::input('filtro')!='all'){
-                $search->where('dias_id',$dia)
-                       ->where('horarios.end','>=',$hora);
-      					if(Auth::user()->access == 3){//Informatica
-      							$search->whereBetween('materias.id', [1, 7]); //Gets the classes info.
-      					} else if(Auth::user()->access == 4){ //Ingles
-      							$search->where('materias.id',8);
-      					} else if(Auth::user()->access == 5){//Gestao
-                    $search->where('materias.id',9);
+            $horarios = DB::table('horarios')
+            ->join('dias', 'dias.id', '=', 'dias_id')
+            ->join('materias', 'materias.id', '=', 'materias_id')
+            ->select('horarios.id AS id', 'materias.nome AS materia', 'dias.nome AS dia','horarios.dias_id', DB::raw("DATE_FORMAT(end,'%H:%i') end"), DB::raw("DATE_FORMAT(start,'%H:%i') start"))
+            ->orderBy('dias.id')
+            ->orderBy('start')
+            ->orderBy('materias.nome');
+            if(Request::input('filtro')!='all'){
+                $horarios->where('dias_id',$dia)
+                ->where('horarios.end','>=',$hora);
+                if(Auth::user()->access == 3){//Informatica
+                    $horarios->whereBetween('materias.id', [1, 7]); //Gets the classes info.
+                } else if(Auth::user()->access == 4){ //Ingles
+                    $horarios->where('materias.id',8);
+                } else if(Auth::user()->access == 5){//Gestao
+                    $horarios->where('materias.id',9);
                 }
-    				}
-            $horarios = $search->get();
+            }
+            $horarios = $horarios->get();
         } catch (\Exception $e) {
             $horarios = array();
         }
@@ -63,7 +64,7 @@ class HorarioController extends Controller
         return view('horario.horario')->with(compact('horarios','materias','dias'));
     }
 
-    public function checkConflict($matricula,$id)
+    public function checkConflict($matricula,$id)//Procura por conflito de horarios
     {
         try {
             $horario = Horario::where('materias_id',$id)->firstOrFail();
@@ -99,7 +100,7 @@ class HorarioController extends Controller
         }
     }
 
-    public function addHorario()
+    public function addHorario()//Adiciona novos horario
     {
         try {
             $params = json_decode(Request::input('data'),true); //JSON to ARRAY
@@ -118,7 +119,6 @@ class HorarioController extends Controller
 
     public function getHorario($id)
     {
-        // Esta função redireciona para /aluno para executarmos algumas função
         return redirect()->route('chamada',['id' => $id]);
     }
 
@@ -130,7 +130,13 @@ class HorarioController extends Controller
         ->join('materias','materias.id','=','horarios.materias_id')
         ->whereRaw("horarios.id = :id",['id'=>$id])
         ->first();
-        $alunos = DB::select("SELECT alunos.id, alunos.nome, alunos.matricula, alunos.nascimento FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.situacao = 1 ORDER BY alunos.nome ASC",['id' => $id]); //Todos os alunos
+        $alunos = DB::table('alunos')
+        ->select('alunos.id','alunos.nome','alunos.matricula','alunos.nascimento')
+        ->join('horarios_has_alunos','horarios_id','=',DB::Raw($id))
+        ->whereRaw('alunos.id = horarios_has_alunos.alunos_id')
+        ->where('alunos.situacao',DB::Raw(1))
+        ->orderBy('alunos.nome', 'ASC')
+        ->get();
         try {
             $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
             $alunosRelatorio = DB::table('relatorios_has_alunos') //Alunos que estao no relatorio
@@ -251,11 +257,18 @@ class HorarioController extends Controller
             return json_encode($this->message);
         }
         try {//Testa se existe relatorio
-            $relatorioExist = true;
             $relatorio = Relatorio::where([
                 ['data',$dataHoje],
                 ['horarios_id',$id]
             ])->firstOrFail();
+            try {
+                $conteudo = DB::table('conteudo')
+                ->where('horarios_id',$id)
+                ->where('data',$dataHoje)->get()->first();
+                $relatorioCompleteExist = true;
+            } catch (\Exception $e) {
+                $relatorioCompleteExist = false;
+            }
         } catch (\Exception $e) { //Nenhum relatorio
             try {
                 $params['data'] = $dataHoje;
@@ -288,20 +301,29 @@ class HorarioController extends Controller
                 }
             }
         }
-        //if($relatorioExist){//Se já havia relatorio então atualiza o PDF
-        //    updateRelatorio($id);
-        //}
+        if($relatorioCompleteExist){//Se já havia relatorio então atualiza o PDF
+           return $this->updateRelatorio($id);
+        }
         $this->message['type'] = 'success';
         $this->message['text'] = 'Chamada salva com sucesso!';
         return json_encode($this->message);
     }
 
-    public function relatorio($id)
+    public function relatorio($id)//View do Relatorio
     {
         $todayComplete = $this->today->format('Y-m-d');
         try {
             $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
-            $alunos = DB::select("SELECT alunos.matricula, alunos.telefone_responsavel AS telefone, alunos.celular_responsavel AS celular, alunos.nome, alunos.nascimento, situacoes.nome AS situacao FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :idHorario INNER JOIN relatorios_has_alunos ON relatorios_has_alunos.relatorios_id = :idRelatorio INNER JOIN situacoes ON situacoes.id = relatorios_has_alunos.situacoes_id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.id = relatorios_has_alunos.alunos_id AND alunos.situacao = 1 ORDER By alunos.nome ASC",['idHorario' => $id,'idRelatorio'=>$todaysRelatorio->id]);
+            $alunos = DB::table('alunos')
+            ->select('alunos.matricula','alunos.telefone_responsavel AS telefone','alunos.celular_responsavel AS celular','alunos.nome','alunos.nascimento','situacoes.nome AS situacao')
+            ->join('horarios_has_alunos','horarios_id','=',DB::Raw($id))
+            ->join('relatorios_has_alunos','relatorios_has_alunos.relatorios_id','=',DB::Raw($todaysRelatorio->id))
+            ->join('situacoes','situacoes.id','=','relatorios_has_alunos.situacoes_id')
+            ->whereRaw('alunos.id = horarios_has_alunos.alunos_id')
+            ->whereRaw('alunos.id = relatorios_has_alunos.alunos_id')
+            ->where('alunos.situacao',DB::Raw(1))
+            ->orderBy('alunos.nome', 'ASC')
+            ->get();
         } catch (\Exception $e) {
             $alunos = null;
         }
@@ -317,7 +339,7 @@ class HorarioController extends Controller
             $alunosOcorrencia = null;
         }
         $conteudo = DB::table('conteudo')
-          ->select('conteudo')
+          ->select('conteudo','id')
           ->whereRaw('data = ?',[$todayComplete])
           ->whereRaw('horarios_id = ?',[$id])
           ->get()->first();
@@ -325,31 +347,87 @@ class HorarioController extends Controller
         return view('horario.relatorio',compact('alunos','alunosOcorrencia','conteudo','isMobile'));
     }
 
-    public function ocorrencia($id)
+    public function ocorrencia($id)//View para Ocorrencias
     {
-        $alunos = DB::select("SELECT alunos.id, alunos.nome, alunos.nascimento FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.situacao = 1 ORDER BY alunos.nome ASC",['id' => $id]); //Todos os alunos
+        $alunos = DB::table('alunos')
+        ->select('alunos.id','alunos.nome','alunos.matricula','alunos.nascimento')
+        ->join('horarios_has_alunos','horarios_id','=',DB::Raw($id))
+        ->whereRaw('alunos.id = horarios_has_alunos.alunos_id')
+        ->where('alunos.situacao',DB::Raw(1))
+        ->orderBy('alunos.nome', 'ASC')
+        ->get();
 
         return view('horario.ocorrencia')->with(compact('alunos'));
     }
 
-    public function addOcorrencia($id)
+    public function addOcorrencia($id)//Adiciona Ocorrencia
     {
         try {
             $data = Request::only(['alunos_id','descricao']);
             $data['horarios_id'] = $id;
             $data['professores_id'] = Auth::user()->id;//Professor
             $data['data'] = $this->today->format('Y-m-d');
-            DB::table('ocorrencias')->insert($data);
-            $this->message['type'] = 'success';
-            $this->message['text'] = 'Ocorrência salva com sucesso.';
-            return json_encode($this->message);
+            try {//Try to find any ocorrencia with the same params
+                $ocorrencia = Ocorrencia::where('alunos_id',$data['alunos_id'])
+                ->where('horarios_id',$id)
+                ->where('data',$data['data'])
+                ->firstOrFail();
+                try {
+                    $ocorrencia->descricao = $data['descricao'];
+                    $ocorrencia->professores_id = $data['professores_id'];
+                    $ocorrencia->save();
+                    $this->message['type'] = 'success';
+                    $this->message['text'] = 'Ocorrência atualizada com sucesso.';
+                    return json_encode($this->message);
+                } catch (\Exception $e) {
+                    $this->message['text'] = 'Erro ao atualizar a ocorrência.';
+                    return json_encode($this->message);
+                }
+
+            } catch (\Exception $e) {//Ocorrencia not found
+                try {//Insert new ocorrencia
+                    DB::table('ocorrencias')->insert($data);
+                    $this->message['type'] = 'success';
+                    $this->message['text'] = 'Ocorrência salva com sucesso.';
+                    return json_encode($this->message);
+                } catch (\Exception $e) {//Error
+                    $this->message['text'] = 'Erro ao salvar a ocorrência.';
+                    return json_encode($this->message);
+                }
+
+            }
         } catch (\Exception $e) {
             $this->message['text'] = 'Erro ao salvar a ocorrência.';
             return json_encode($this->message);
         }
     }
 
-    public function salvaRelatorio($id)
+    public function removeOcorrencia($id)//Deleta Ocorrencia
+    {
+        try {//Try to find ocorrencia
+            $data = $this->today->format('Y-m-d');
+            $matricula = Request::input('matricula');
+            $aluno = Aluno::where('matricula',$matricula)->firstOrFail();
+            $ocorrencia = Ocorrencia::where('alunos_id', $aluno->id)
+            ->where('data',$data)->firstOrFail();
+            try {
+                $ocorrencia->delete();
+                $this->message['type'] = 'success';
+                $this->message['text'] = 'Ocorrência excluida com sucesso.';
+                return json_encode($this->message);
+            } catch (\Exception $e) {
+                $this->message['text'] = 'Ocorrência não pode ser excluida.';
+                return json_encode($this->message);
+            }
+        } catch (\Exception $e) {//Ocorrencia not found
+            $this->message['text'] = 'Ocorrência não encontrada para deletar.';
+            $this->message['error'] = $e->getMessage();
+            return json_encode($this->message);
+        }
+
+    }
+
+    public function salvaRelatorio($id)//Cria Relatorio PDF
     {
         $dia = $this->today->dayOfWeek;
         switch ($dia){
@@ -378,13 +456,13 @@ class HorarioController extends Controller
         $data = $this->today->format('d-m-Y');
         $nomeRelatorio = "relatorio_".$data;
         try {
-            $dados[0] = Request::only('conteudo');
-            $dados[0]['data'] = $this->today->format('Y-m-d');
-            $dados[0]['professores_id'] = Auth::user()->id;
-            $dados[0]['horarios_id'] = $id;
-            $verifica = DB::table('conteudo')->where('horarios_id',$id)->where('data', $dados[0]['data'])->get()->first();
+            $dados = Request::only('conteudo');
+            $dados['data'] = $this->today->format('Y-m-d');
+            $dados['professores_id'] = Auth::user()->id;
+            $dados['horarios_id'] = $id;
+            $verifica = DB::table('conteudo')->where('horarios_id',$id)->where('data', $dados['data'])->get()->first();
             if(!isset($verifica)){
-                DB::table('conteudo')->insert($dados); //Prevent duplicate
+                $conteudoId = DB::table('conteudo')->insertGetId($dados); //Prevent duplicate
             }
 
             try { //Try to get some information
@@ -401,7 +479,8 @@ class HorarioController extends Controller
             $nomeMateria = $info->nome;
             $de = str_replace(":","-",$info->start);
             $ate = str_replace(":","-",$info->end);
-            $path = "D:/Aulas/Relatorios/$dia/$nomeMateria/$de - $ate/";
+            // $path = "D:/Aulas/Relatorios/$dia/$nomeMateria/$de - $ate/";
+            $path = "/var/www/html/cniWorkspace/relatorios/$dia/$nomeMateria/$de - $ate/";
             try { //Try to create the directory
                 $result = File::makeDirectory($path,0777,true,true);
             } catch (\Exception $e) {
@@ -411,8 +490,16 @@ class HorarioController extends Controller
             try { //Try to save PDF
                 $todayComplete = $this->today->format('Y-m-d');
                 $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
-
-                $alunos = DB::select("SELECT alunos.matricula,  alunos.telefone_responsavel AS telefone, alunos.celular_responsavel AS celular, alunos.nome, alunos.nascimento, situacoes.nome AS situacao FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :idHorario INNER JOIN relatorios_has_alunos ON relatorios_has_alunos.relatorios_id = :idRelatorio INNER JOIN situacoes ON situacoes.id = relatorios_has_alunos.situacoes_id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.id = relatorios_has_alunos.alunos_id AND alunos.situacao = 1 ORDER By alunos.nome ASC",['idHorario' => $id,'idRelatorio'=>$todaysRelatorio->id]);
+                $alunos = DB::table('alunos')
+                ->select('alunos.matricula','alunos.telefone_responsavel AS telefone','alunos.celular_responsavel AS celular','alunos.nome','alunos.nascimento','situacoes.nome AS situacao')
+                ->join('horarios_has_alunos','horarios_id','=',DB::Raw($id))
+                ->join('relatorios_has_alunos','relatorios_has_alunos.relatorios_id','=',DB::Raw($todaysRelatorio->id))
+                ->join('situacoes','situacoes.id','=','relatorios_has_alunos.situacoes_id')
+                ->whereRaw('alunos.id = horarios_has_alunos.alunos_id')
+                ->whereRaw('alunos.id = relatorios_has_alunos.alunos_id')
+                ->where('alunos.situacao',DB::Raw(1))
+                ->orderBy('alunos.nome', 'ASC')
+                ->get();
                 try {
                     $alunosOcorrencia = DB::table('ocorrencias')->select('alunos.nome','alunos.matricula','ocorrencias.descricao','alunos.telefone_responsavel AS telefone', 'alunos.celular_responsavel AS celular')
                     ->join('alunos','alunos.id','=','ocorrencias.alunos_id')
@@ -421,16 +508,18 @@ class HorarioController extends Controller
                 } catch (\Exception $e) {
                     $alunosOcorrencia = null;
                 }
-                $conteudo = $dados[0]['conteudo'];
+                $conteudo = $dados['conteudo'];
                 $nomeProfessor = Auth::user()->name; //Professor
                 $horario = $de." às ".$ate;
                 $pdf = PDF::loadView('horario.relatorioPDF',compact('alunos','alunosOcorrencia','nomeProfessor','dia','nomeMateria','horario','conteudo'));
                 $pdf->save($path.$nomeRelatorio.'.pdf');
+                $this->message['id'] = $conteudoId;
                 $this->message['type'] = 'success';
                 $this->message['text'] = 'Relatório salvo com sucesso.';
                 return json_encode($this->message);
             } catch (\Exception $e) {
                 $this->message['text'] = 'Erro ao salvar o relatório.';
+                $this->message['error'] = $e->getMessage();
                 return json_encode($this->message);
             }
 
@@ -440,7 +529,7 @@ class HorarioController extends Controller
         }
     }
 
-    public function updateRelatorio($id)
+    public function updateRelatorio($id)//Atualiza Relatorio PDF
     {
         $dia = $this->today->dayOfWeek;
         switch ($dia){
@@ -472,7 +561,8 @@ class HorarioController extends Controller
         try {
             $conteudoDB = DB::table('conteudo')->select('conteudo','professores_id')->where('horarios_id',$id)->where('data', $todayComplete)->get()->first();
             if(!isset($conteudoDB)){
-                return 406; //Nenhum conteudo de aula encontrado.
+                $this->message['text'] = 'Nenhum conteúdo de aula encontrado.';
+                return json_encode($this->message);
             }
             try { //Try to get some information
                 $info = DB::table('horarios')
@@ -487,7 +577,8 @@ class HorarioController extends Controller
             $nomeMateria = $info->nome;
             $de = str_replace(":","-",$info->start);
             $ate = str_replace(":","-",$info->end);
-            $path = "D:/Aulas/Relatorios/$dia/$nomeMateria/$de - $ate/";
+            // $path = "D:/Aulas/Relatorios/$dia/$nomeMateria/$de - $ate/";
+            $path = "/var/www/html/cniWorkspace/relatorios/$dia/$nomeMateria/$de - $ate/";
             try { //Try to create the directory
                 $result = File::makeDirectory($path,0777,true,true);
             } catch (\Exception $e) {
@@ -497,7 +588,16 @@ class HorarioController extends Controller
             try { //Try to save PDF
                 $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
 
-                $alunos = DB::select("SELECT alunos.matricula,  alunos.telefone_responsavel AS telefone, alunos.celular_responsavel AS celular, alunos.nome, alunos.nascimento, situacoes.nome AS situacao FROM alunos INNER JOIN horarios_has_alunos ON horarios_id = :idHorario INNER JOIN relatorios_has_alunos ON relatorios_has_alunos.relatorios_id = :idRelatorio INNER JOIN situacoes ON situacoes.id = relatorios_has_alunos.situacoes_id WHERE alunos.id = horarios_has_alunos.alunos_id AND alunos.id = relatorios_has_alunos.alunos_id AND alunos.situacao = 1 ORDER By alunos.nome ASC",['idHorario' => $id,'idRelatorio'=>$todaysRelatorio->id]);
+                $alunos = DB::table('alunos')
+                ->select('alunos.matricula','alunos.telefone_responsavel AS telefone','alunos.celular_responsavel AS celular','alunos.nome','alunos.nascimento','situacoes.nome AS situacao')
+                ->join('horarios_has_alunos','horarios_id','=',DB::Raw($id))
+                ->join('relatorios_has_alunos','relatorios_has_alunos.relatorios_id','=',DB::Raw($todaysRelatorio->id))
+                ->join('situacoes','situacoes.id','=','relatorios_has_alunos.situacoes_id')
+                ->whereRaw('alunos.id = horarios_has_alunos.alunos_id')
+                ->whereRaw('alunos.id = relatorios_has_alunos.alunos_id')
+                ->where('alunos.situacao',DB::Raw(1))
+                ->orderBy('alunos.nome', 'ASC')
+                ->get();
                 try {
                     $alunosOcorrencia = DB::table('ocorrencias')->select('alunos.nome','alunos.matricula','ocorrencias.descricao','alunos.telefone_responsavel AS telefone', 'alunos.celular_responsavel AS celular')
                     ->join('alunos','alunos.id','=','ocorrencias.alunos_id')
@@ -507,8 +607,8 @@ class HorarioController extends Controller
                     $alunosOcorrencia = null;
                 }
                 $conteudo = $conteudoDB->conteudo;
-	              $professor = Professor::find($conteudoDB->professores_id);
-		            $nomeProfessor = $professor->name;
+	            $professor = Professor::find($conteudoDB->professores_id);
+		        $nomeProfessor = $professor->name;
                 $horario = $de." às ".$ate;
                 $pdf = PDF::loadView('horario.relatorioPDF',compact('alunos','alunosOcorrencia','nomeProfessor','dia','nomeMateria','horario','conteudo'));
                 $pdf->save($path.$nomeRelatorio.'.pdf');
@@ -526,13 +626,29 @@ class HorarioController extends Controller
         }
     }
 
-    public function getConteudo($id)
+    public function getConteudo($id)//View do Conteudo das AUlas
     {
         $conteudos = DB::table('conteudo')
         ->select( DB::raw('DATE_FORMAT(data,\'%d/%m/%Y\') data'),'conteudo','professores.name')
         ->join('professores','professores.id','=','conteudo.professores_id')
         ->where('horarios_id',$id)
+        ->orderBy('data','DESC')
         ->get();
         return view('horario.conteudo',compact('conteudos'));
+    }
+
+    public function removeConteudo($id)//Remover o conteudo
+    {
+        $id_conteudo = Request::input('id_conteudo');
+        try {
+            DB::table('conteudo')->where('id',$id_conteudo)->delete();
+            $this->message['type'] = 'success';
+            $this->message['text'] = 'Conteúdo deletado com sucesso.';
+            return json_encode($this->message);
+        } catch (\Exception $e) {
+            $this->message['text'] = 'Conteúdo não foi deletado.';
+            return json_encode($this->message);
+        }
+
     }
 }

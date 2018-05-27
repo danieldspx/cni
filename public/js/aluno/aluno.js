@@ -96,18 +96,7 @@ $(document).ready(function(){
                 method: "POST",
                 data: {"data":JSON.stringify(data),"_token":_token},
                 success: function(response){
-                    console.log(response);
-                    switch (parseInt(response)) {
-                        case 400:
-                            toastr.error('Erro ao incluir no Banco de dados!', 'Erro');
-                            break;
-                        case 401:
-                            toastr.warning('Digite todos os dados!', 'Erro');
-                            break;
-                        default:
-                            toastr.success('Aluno salvo!', 'Sucesso');
-                            break;
-                    }
+                    pushMessage(response);
                 }
             });
             clearForm();

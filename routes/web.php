@@ -31,6 +31,8 @@ Route::get('/horario/{id}/ocorrencia','HorarioController@ocorrencia')->where('id
 
 Route::post('/horario/{id}/ocorrencia/adicionar','HorarioController@addOcorrencia')->where('id','[0-9]+');
 
+Route::post('/horario/{id}/ocorrencia/remover','HorarioController@removeOcorrencia')->where('id','[0-9]+');
+
 Route::post('/horario/{id}/relatorio/salvar','HorarioController@salvaRelatorio')->where('id','[0-9]+');
 
 Route::post('/horario/{id}/relatorio/update','HorarioController@updateRelatorio')->where('id','[0-9]+');
@@ -48,6 +50,8 @@ Route::post('/aluno/buscar','AlunoController@buscarAluno');
 Route::post('/horario/{id}/chamada/salvar','HorarioController@newChamada')->where('id','[0-9]+');
 
 Route::get('/horario/{id}/conteudo','HorarioController@getConteudo')->where('id','[0-9]+');
+
+Route::post('/horario/{id}/conteudo/remover','HorarioController@removeConteudo')->where('id','[0-9]+');
 
 Route::get('home','HomeController@index');
 

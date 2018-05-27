@@ -19,8 +19,8 @@
                 </div>
             </div>
         @else
-            @if(empty($conteudo))
             <div class="wrapConteudo">
+            @if(empty($conteudo))
                 <div class="titleConteudo">
                     <i class="mdi mdi-chair-school"></i> Conteúdo da Aula (Máx.: 500)
                 </div>
@@ -30,10 +30,9 @@
                         <label for="descricao" data-to="descricao">Conteúdo</label>
                     </div>
                 </div>
-            </div>
-            <div class="row">
-                <button type="button" class="btn col-sm-6 col-md-4 col-10" id="saveRelatorio" style="margin-top: 30px; margin-left: 15px;">Salvar Relatório <i class="mdi mdi-content-save"></i></button>
-            </div>
+                <div class="row">
+                    <button type="button" class="btn col-sm-6 col-md-4 col-10" id="saveRelatorio">Salvar Relatório <i class="mdi mdi-content-save"></i></button>
+                </div>
             @else
             <div class="table-responsive">
                 <table class="table table-bordered table-hover">
@@ -44,17 +43,20 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>{{$conteudo->conteudo}}</td>
+                            <td>{{$conteudo->conteudo}} <i class="mdi mdi-delete-forever mdi-36px deleteConteudo" title="Delete o conteúdo da aula" id="{{$conteudo->id}}"></i></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
             @endif
+            </div>
         <div class="table-responsive">
             <table class="table table-bordered table-hover">
                 <thead class="thead-dark">
                     <tr>
+                        @if(!$isMobile)
                         <th scope="col">Matrícula</th>
+                        @endif
                         <th scope="col">Nome</th>
                         <th scope="col">Situação</th>
                         @if(!$isMobile)
@@ -70,7 +72,9 @@
                         @else
                             <tr>
                         @endif
+                                @if(!$isMobile)
                                 <th scope="row">{{$aluno->matricula}}</th>
+                                @endif
                                 <td>{{$aluno->nome}}</td>
                                 <td>{{$aluno->situacao}}</td>
                                 @if(!$isMobile)
@@ -94,24 +98,38 @@
             <table class="table table-bordered table-hover">
                 <thead class="thead-dark">
                     <tr style="text-align: center">
-                        <th colspan="5">Ocorrências</th>
+                        @if(!$isMobile)
+                        <th colspan="6">Ocorrências</th>
+                        @else
+                        <th colspan="3">Ocorrências</th>
+                        @endif
                     </tr>
                     <tr>
+                        @if(!$isMobile)
                         <th scope="col">Matrícula</th>
+                        @endif
                         <th scope="col">Nome</th>
-                        <th scope="col">descricao</th>
+                        <th scope="col">Descrição</th>
+                        @if(!$isMobile)
                         <th scope="col">Telefone</th>
                         <th scope="col">Celular</th>
+                        @endif
+                        <th scope="col">Deletar</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="bodyOcorrencia">
                     @foreach($alunosOcorrencia as $aluno)
                             <tr>
+                                @if(!$isMobile)
                                 <th scope="row">{{$aluno->matricula}}</th>
+                                @endif
                                 <td>{{$aluno->nome}}</td>
                                 <td>{{$aluno->descricao}}</td>
+                                @if(!$isMobile)
                                 <td>{{$aluno->telefone}}</td>
                                 <td>{{$aluno->celular}}</td>
+                                @endif
+                                <td><i class="mdi mdi-delete-forever mdi-36px deleteOcorrencia" data-matricula='{{$aluno->matricula}}'></i></td>
                             </tr>
                     @endforeach
                 </tbody>

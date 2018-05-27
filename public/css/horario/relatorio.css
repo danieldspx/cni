@@ -28,6 +28,20 @@
     font-weight: bold;
 }
 
+.deleteOcorrencia,.deleteConteudo{
+    color: #ef5350;
+    cursor: pointer;
+}
+
+.deleteConteudo{
+    float: right;
+}
+
+#saveRelatorio{
+    margin-top: 30px;
+    margin-left: 15px;
+}
+
 @media(max-width: 800px){
     #core{
         padding: 0 5px;

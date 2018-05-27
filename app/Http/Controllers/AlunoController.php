@@ -41,9 +41,10 @@ class AlunoController extends Controller
             }
             $aluno->nascimento = $this->dateConverter($aluno->nascimento);
             $aluno->save();
-            return 200;
+            $this->message['type'] = 'success';
+            $this->message['text'] = 'Aluno salvo!';
         } catch (\Exception $e) {
-            return 400;
+            $this->message['text'] = 'Erro ao incluir no Banco de dados!';
         }
 
     }
