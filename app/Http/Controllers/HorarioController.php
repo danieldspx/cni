@@ -2,6 +2,7 @@
 
 namespace cni\Http\Controllers;
 use Illuminate\Support\Facades\DB;
+use cni\Http\Controllers\Controller;
 use Illuminate\Support\Facades\File;
 use Request;
 use cni\Horario;
@@ -12,6 +13,7 @@ use cni\Relatorio;
 use cni\Professor;
 use cni\Ocorrencia;
 use Carbon\Carbon;
+use DateTime;
 use PDF;
 use Auth;
 use Jenssegers\Agent\Agent;//Detect Mobile
@@ -64,25 +66,32 @@ class HorarioController extends Controller
         return view('horario.horario')->with(compact('horarios','materias','dias'));
     }
 
-    public function checkConflict($matricula,$id)//Procura por conflito de horarios
+    public function checkConflict($idAluno,$id)//Procura por conflito de horarios
     {
         try {
-            $horario = Horario::where('materias_id',$id)->firstOrFail();
+            $horario = Horario::findOrFail($id);
             try {
-                $aluno = Aluno::where('matricula',$matricula)->firstOrFail();
+                $aluno = Aluno::findOrFail($idAluno);
                 $horariosCadastrado = DB::table('horarios_has_alunos')
-                ->select(DB::raw("DATE_FORMAT(horarios.end,'%H:%i') end"), DB::raw("DATE_FORMAT(horarios.start,'%H:%i') start"))
+                ->select('materias.nome AS materia','materias.id AS materias_id', 'horarios_id', 'dias.nome AS dia','dias.id AS dia_id', DB::raw("DATE_FORMAT(horarios.end,'%H:%i') end"), DB::raw("DATE_FORMAT(horarios.start,'%H:%i') start"))
                 ->join('horarios','horarios.id','=','horarios_id')
-                ->where('alunos_id',$aluno->id)->get();
+                ->join('materias','materias.id','=','horarios.materias_id')
+                ->join('dias','dias.id','=','horarios.dias_id')
+                ->where('alunos_id',DB::Raw($aluno->id))->get();
                 $gtg = true;
             if(count($horariosCadastrado) != 0){//Horarios Cadastrados
+                $inicio = new DateTime($horario->start);
+                $fim = new DateTime($horario->end);
                 foreach ($horariosCadastrado as $horarioCadastrado) {
-                    $inicioC = $horarioCadastrado->start;
-                    $fimC = $horarioCadastrado->end;
-                    $inicio = $horario->start;
-                    $fim = $horario->end;
-                    if(($inicio > $inicioC && $inicio < $fimC) || ($fim > $inicioC && $fim < $fimC)){//Conflict
+                    $inicioC = new DateTime($horarioCadastrado->start);
+                    $fimC = new DateTime($horarioCadastrado->end);
+                    if($horarioCadastrado->horarios_id == $id){ //If aluno is already registered on this horario
+                        $this->message['text'] = 'Aluno já está nesse horário.';
                         return false;
+                    } else if(((($inicio > $inicioC && $inicio < $fimC) || ($fim > $inicioC && $fim < $fimC)) && $horario->dias_id == $horarioCadastrado->dias_id) || $horario->materias_id == $horarioCadastrado->materias_id){//Conflict
+                        $this->message['time'] = 10000;
+                        $this->message['text'] = 'Conflito de horários. O aluno já entá no horário de <strong>'.$horarioCadastrado->materia.' de '.$horarioCadastrado->start.' às '.$horarioCadastrado->end.' na '.$horarioCadastrado->dia.'</strong>';
+                        return  false;//False because Aluno is registered whether in the same Materia or there's a conflict of classes
                     }
                 }
                 if($gtg){//Good to go
@@ -93,9 +102,11 @@ class HorarioController extends Controller
             }
 
             } catch (\Exception $e) {//Aluno not found
-                return false;
+                $this->message['text'] = 'Aluno não encontrado.';
+                return false;//false
             }
         } catch (\Exception $e) {//Horario not found
+            $this->message['text'] = 'Horário não encontrado.';
             return false;
         }
     }
@@ -207,7 +218,7 @@ class HorarioController extends Controller
                         return json_encode($this->message);
                     }
                 } else {//Conflict between Horarios
-                    $this->message['text'] = 'Conflito de horários.';
+                    //Message is comming from checkConflict
                     return json_encode($this->message);
                 }
             } catch (\Exception $e) { //Aluno not found
@@ -479,8 +490,7 @@ class HorarioController extends Controller
             $nomeMateria = $info->nome;
             $de = str_replace(":","-",$info->start);
             $ate = str_replace(":","-",$info->end);
-            // $path = "D:/Aulas/Relatorios/$dia/$nomeMateria/$de - $ate/";
-            $path = "/var/www/html/cniWorkspace/relatorios/$dia/$nomeMateria/$de - $ate/";
+            $path = "D:/Aulas/Relatorios/$dia/$nomeMateria/$de - $ate/";
             try { //Try to create the directory
                 $result = File::makeDirectory($path,0777,true,true);
             } catch (\Exception $e) {
@@ -577,8 +587,7 @@ class HorarioController extends Controller
             $nomeMateria = $info->nome;
             $de = str_replace(":","-",$info->start);
             $ate = str_replace(":","-",$info->end);
-            // $path = "D:/Aulas/Relatorios/$dia/$nomeMateria/$de - $ate/";
-            $path = "/var/www/html/cniWorkspace/relatorios/$dia/$nomeMateria/$de - $ate/";
+            $path = "D:/Aulas/Relatorios/$dia/$nomeMateria/$de - $ate/";
             try { //Try to create the directory
                 $result = File::makeDirectory($path,0777,true,true);
             } catch (\Exception $e) {

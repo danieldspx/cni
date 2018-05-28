@@ -61,8 +61,8 @@ $("#addAlunoHorario").click(function(){
             method: 'POST',
             data: {"matricula": matricula, "horario": idHorario, "_token": _token},
             success: function(response){
-                pushMessage(response,function(code){
-                    if(code = 'success'){
+                pushMessage(response,function(type){
+                    if(type = 'success'){
                         $('#nome').val('');
                         $('#matricula').val('');
                     }

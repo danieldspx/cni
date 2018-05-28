@@ -38,7 +38,28 @@ function populateForm(aluno) {
     } else {
         $("#inativo").prop("checked",true);
     }
+    $('#cursoWrapper').empty();
+    for(curso of aluno.cursos){
+        var htmlPiece = '<div class="cursoContainer col-sm-8" id="container'+curso.horarios_id+'">\
+                            <div class="cursoTitle">\
+                                '+curso.materia+'\
+                            </div>\
+                            <div class="descricao">\
+                                <i class="mdi mdi-clock"></i> '+curso.dia+' '+curso.start+' às '+curso.end+'\
+                                <div class="iconsOptions">\
+                                    <a href="#animatedModal" class="linkHorario openChangeModal">\
+                                        <i class="mdi mdi-swap-horizontal mdi-36px changeTurma" title="Troca aluno de turma" data-aluno="'+aluno.matricula+'" data-curso="'+curso.horarios_id+'"></i>\
+                                    </a>\
+                                    <a href="horario/'+curso.horarios_id+'/chamada" class="linkHorario">\
+                                        <i class="mdi mdi-eye mdi-36px seeLink" title="Acesse a turma"></i>\
+                                    </a>\
+                                </div>\
+                            </div>\
+                        </div>';
+        $('#cursoWrapper').append(htmlPiece);
+    }
     updateMaterial(); //Update Labels
+    $(".openChangeModal").animatedModal();
 }
 
 $(document).ready(function(){
@@ -63,6 +84,13 @@ $(document).ready(function(){
             $(id+" .showOptions").toggleClass("mdi-plus-circle");
             $(id+" .showOptions").toggleClass("mdi-minus-circle");
             $(id+" .showOptions").animateCss('flipInY');
+    });
+
+    $("#matricula").keypress(function(e) {
+        if(e.which == 13) {
+            e.preventDefault();
+            searchAluno();
+        }
     });
 
     $("#addAlunoList").click(function(){
@@ -104,4 +132,114 @@ $(document).ready(function(){
         }
 		this.disabled = false;
     });
+
+    $(".openChangeModal").animatedModal();
+
+    $('.diaSelect>.select>.select-options>li').click(function(){
+        changeHorario(1);
+    });
+
+    $('#changeAluno').click(function(){
+        changeHorario(3);
+    });
+
+    $('#cursoWrapper').on('click','.openChangeModal',function(elem){
+        elem = elem.target;
+        $('#alunoChange').val($(elem).data('aluno'));
+        $('#fromHorario').val($(elem).data('curso'));
+    });
+
+    $("#closebt-container").click(function(){
+        $('#changeAluno').prop("disabled", true);
+        $('#changeAluno').css("cursor","not-allowed");
+    });
 });
+
+function setupCursos(response) {
+    if(typeof $('.cursoSelect') != "undefined"){
+        $('.cursoSelect').empty();
+    }
+    if(typeof $('.horarioSelect') != "undefined"){
+        $('.horarioSelect').empty();
+    }
+    var htmlPiece = '<div class="row cursoSelect">\
+                        <select id="cursoChange" class="col-sm-8">\
+                            <option value="" selected>Selecione o curso</option>';
+    var cursos = JSON.parse(response);
+    cursos.forEach(function(curso){
+        htmlPiece += '<option value="'+curso.id+'">'+curso.nome+'</option>';
+    });
+    htmlPiece += '</select>\
+                </div>';
+    $('#insideModal').append(htmlPiece);
+    $('.cursoSelect>.select>.select-options>li').ready(function(){
+        $('.cursoSelect>.select>.select-options>li').click(function(){
+            changeHorario(2);
+        });
+    });
+}
+
+function setupHorarios(response) {
+    if(typeof $('.horarioSelect') != "undefined"){
+        $('.horarioSelect').empty();
+    }
+    var htmlPiece = '<div class="row horarioSelect">\
+                        <select id="horarioChange" class="col-sm-8">\
+                            <option value="" selected>Selecione o horário</option>';
+    var horarios = JSON.parse(response);
+    horarios.forEach(function(horario){
+        htmlPiece += '<option value="'+horario.id+'">'+horario.start+' - '+horario.end+'</option>';
+    });
+    htmlPiece += '</select>\
+                </div>';
+    $('#insideModal').append(htmlPiece);
+    $('.horarioSelect>.select>.select-options>li').ready(function(){
+        $('.horarioSelect>.select>.select-options>li').click(function(){
+            $('#changeAluno').prop( "disabled", false );
+            $('#changeAluno').css( "display","block");
+            $('#changeAluno').css( "cursor","pointer");
+        });
+    });
+}
+
+function changeHorario(type){
+    $('#changeAluno').prop("disabled", true);
+    $('#changeAluno').css("cursor","not-allowed");
+
+    var dia = $('#diaChange>option:selected').val();
+    var _token = $("#token").val();
+    var dataSend = {type:type, dia:dia, _token:_token};
+    if(type == 2){
+        dataSend.materia = $('#cursoChange>option:selected').val();
+    } else if (type == 3){//Make change
+        dataSend.toHorario = $('#horarioChange>option:selected').val();
+        dataSend.aluno = $("#alunoChange").val();
+        dataSend.fromHorario = $("#fromHorario").val();
+    }
+    $.ajax({
+        url: "aluno/mudar",
+        method: "POST",
+        data: dataSend,
+        success: function(response){
+            console.log(response);
+            pushMessage(response,function(code){
+                if(code == 'success'){
+                    //Remove Curso containers
+                    $("#cursoWrapper").empty();
+                    $('#closebt-container').trigger('click');
+                    clearForm();
+                }
+                if(typeof code != "undefined"){
+                    $('#changeAluno').prop("disabled", false);
+                    $('#changeAluno').css("cursor","pointer");
+                }
+            });
+            if(type==1){
+                setupCursos(response);
+            } else if (type==2){
+                setupHorarios(response);
+            }
+            updateSelects();
+        }
+    });
+}

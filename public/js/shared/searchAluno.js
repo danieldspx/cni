@@ -32,6 +32,7 @@ function clearResults(){
 function searchAluno(){
     var matricula = $("#matricula").val();
     var nome = $("#nome").val();
+    var additional = $("#additional").val();
     var _token = $("#token").val();
     if(matricula == "" && nome == ""){
         toastr.warning('Digite a matricula ou o nome para buscar', 'Atenção');
@@ -39,10 +40,15 @@ function searchAluno(){
         if (matricula != "") {
             toastr.info('Você esta pesquisando pela matricula.');
         }
+        if(typeof additional == "undefined"){//No additional
+            var dataSend = {"matricula":matricula,"nome":nome,"_token":_token};
+        } else {
+            var dataSend = {"matricula":matricula,"nome":nome,additional: additional,"_token":_token};
+        }
         $.ajax({
             url: "/aluno/buscar",
             method: "POST",
-            data: {"matricula":matricula,"nome":nome,"_token":_token},
+            data: dataSend,
             beforeSend: function(){
                 clearResults();
             },

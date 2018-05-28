@@ -60,7 +60,35 @@
                                 <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required>
                             </div>
                         </div>
-
+                        <div class="form-group">
+                            <div class="row col-md-6 offset-md-4">
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="funcao1" name="access" value="1" class="custom-control-input">
+                                    <label class="custom-control-label" for="funcao1">Professor T.I.</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="funcao4" name="access" value="4" class="custom-control-input">
+                                    <label class="custom-control-label" for="funcao4">Professor Inglês</label>
+                                </div>
+                            </div>
+                            <div class="row col-md-6 offset-md-4">
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="funcao5" name="access"  value="5" class="custom-control-input">
+                                    <label class="custom-control-label" for="funcao5">Professor Gestão</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="funcao2" name="access" value="2" class="custom-control-input">
+                                    <label class="custom-control-label" for="funcao2">Recepção</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 offset-md-4">
+                                @if ($errors->has('access'))
+                                    <span class="invalid-feedback" style="display: block">
+                                        <strong>{{ $errors->first('access') }}</strong>
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
                         <div class="form-group row mb-0">
                             <div class="col-md-6 offset-md-4">
                                 <button type="submit" class="btn btn-primary">

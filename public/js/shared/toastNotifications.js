@@ -9,17 +9,17 @@ function pushMessage(msg,callback){
     if(message.hasOwnProperty('type') && message.hasOwnProperty('text')){
         switch (message.type) {
             case 'warning':
-                toastr.warning(message.text,message.title);
+                toastr.warning(message.text,message.title,{timeOut: message.time});
                 break;
             case 'success':
-                toastr.success(message.text,message.title);
+                toastr.success(message.text,message.title,{timeOut: message.time});
                 break;
             case 'error':
-                toastr.error(message.text,message.title);
+                toastr.error(message.text,message.title,{timeOut: message.time});
                 break;
             default:
-                toastr.info(message.text,message.title);
-        }    
+                toastr.info(message.text,message.title,{timeOut: message.time});
+        }
     }
     if(callback && typeof callback === 'function'){
         callback(message.type);

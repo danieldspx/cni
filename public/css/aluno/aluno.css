@@ -14,6 +14,7 @@ body{
     color: #333;
     font-weight: bold;
     font-family: "Imprima",sans-serif;
+    margin-top: 20px;
 }
 
 #content-search{
@@ -23,4 +24,112 @@ body{
 
 #dropdown-alunos{
     padding: 0px;
+}
+
+.cursoContainer{
+    font-family: 'Imprima', sans-serif;
+    background-color: #2ecc71;
+    border-bottom: 1px solid #ddd;
+    padding: 15px;
+    position: relative;
+    margin-left: 15px;
+}
+.iconsOptions{
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    margin-left: 20px;
+}
+
+.cursoTitle{
+    font-size: 30px;
+    font-weight: bold;
+    margin-left: 20px;
+    display: inline-block;
+}
+
+.linkHorario,
+.linkHorario:visited,
+.linkHorario:link,
+.linkHorario:hover,
+.linkHorario:active{
+    display: inline;
+    width: 100%;
+    color: inherit;
+    text-decoration: none;
+}
+
+.changeTurma{
+    color: #e74c3c;
+}
+
+.seeLink{
+    color: #263238;
+    margin-left: 25px;
+}
+
+.descricao{
+    display: inline-block;
+    font-weight: bold;
+    font-size: 18px;
+    position: absolute;
+    right: 20px;
+}
+
+#closebt-container {
+    position: relative;
+    width: 100%;
+    text-align: center;
+    margin-top: 40px;
+}
+
+.closebt {
+    -webkit-transition: all 0.2s;
+    -moz-transition: all 0.2s;
+    -ms-transition: all 0.2s;
+    -o-transition: all 0.2s;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.closebt:hover {
+    transform: rotate(90deg);
+}
+
+.modal-container {
+    position: relative;
+    margin-top: 50px;
+}
+
+.select{
+    font-weight: bold;
+}
+
+.select-styled{
+    color: white;
+    border-bottom-color: white;
+}
+
+.select-styled:after{
+    border-color: white transparent transparent transparent;
+}
+
+.select-styled:active:after, .select-styled.active:after {
+    border-color: transparent transparent white transparent;
+}
+
+#changeAluno{
+    background-color: #ff5252;
+    display: none;
+    margin-left: 40px;
+}
+
+@media(max-width: 1200px){
+    .descricao{
+        position: relative;
+        right: 0;
+    }
+    .cursoTitle{
+        display: block;
+    }
 }

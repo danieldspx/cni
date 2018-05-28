@@ -37,13 +37,15 @@ Route::post('/horario/{id}/relatorio/salvar','HorarioController@salvaRelatorio')
 
 Route::post('/horario/{id}/relatorio/update','HorarioController@updateRelatorio')->where('id','[0-9]+');
 
-Route::post('/horario/{id}/chamada/adicionar','HorarioController@incluirChamada')->where('id','[0-9]+');
+Route::match(['get', 'post'],'/horario/{id}/chamada/adicionar','HorarioController@incluirChamada')->where('id','[0-9]+');
 
-Route::post('/horario/{id}/chamada/remover','HorarioController@removerChamada')->where('id','[0-9]+');
+Route::match(['get', 'post'],'/horario/{id}/chamada/remover','HorarioController@removerChamada')->where('id','[0-9]+');
 
 Route::get('/aluno','AlunoController@getHome');
 
 Route::post('/aluno/adicionar','AlunoController@addAluno');
+
+Route::post('/aluno/mudar','AlunoController@mudarAluno');
 
 Route::post('/aluno/buscar','AlunoController@buscarAluno');
 

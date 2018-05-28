@@ -2,6 +2,14 @@ $(document).ready(function(){
     $('#relatorioLink').addClass('active');
 });
 
+$('.wrapConteudo').on('focusin','.input-field>input',function(element){
+    focusIn(element.target);
+});//focusIn for this specif case
+
+$('.wrapConteudo-field').on('focusout','.input-field>input',function(element){
+    focusOut(element.target);
+});//focusOut for this specif case
+
 $('.wrapConteudo').on('click','#saveRelatorio',function(){
     var _token = $('#token').val();
     var conteudo = $("#descricao").val();

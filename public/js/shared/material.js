@@ -26,7 +26,11 @@ $.fn.extend({
 });
 
 $(document).ready(function(){
-    $('select').each(function(){
+    updateSelects();
+});
+
+function updateSelects(){
+    $('select:not(.select>select)').each(function(){
         var $this = $(this), numberOfOptions = $(this).children('option').length;
 
         $this.addClass('select-hidden');
@@ -70,7 +74,7 @@ $(document).ready(function(){
         });
 
     });
-});
+}
 
 function focusIn(element){
     let id = element.id;
@@ -103,12 +107,12 @@ function updateMaterial(){
     $(".input-field>input[type=email]").each(iterate);
 }
 
-$(".input-field>input").focusin(function(element){
+$('.input-field').on('focusin','input',function(element){
     focusIn(element.target);
 });
 
-$(".input-field>input").focusout(function(element){
-    focusOut(element.target)
+$('.input-field').on('focusout','input',function(element){
+    focusOut(element.target);
 });
 
 $(".newElement").click(function(){
@@ -119,7 +123,10 @@ function clearForm(){
     $('input[type=number]').val('');
     $('input[type=text]').val('');
     $('select').prop('selectedIndex', 0);
-    $('.select-styled').text("");
+    $('.select-options').each(function(index,element){
+    	var msg = $(element).children().html();
+		$(element).parent().children('.select-styled').html(msg);
+    });
 }
 
 $("#clearForm").click(function(){

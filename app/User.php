@@ -17,7 +17,7 @@ class User extends Authenticatable
     protected $table = 'professores';
     public $timestamps = false;
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'access',
     ];
 
     /**
@@ -28,6 +28,6 @@ class User extends Authenticatable
     protected $guarded = ['id','access'];
 
     protected $hidden = [
-        'password', 'remember_token', 'access'
+        'password', 'remember_token'
     ];
 }
