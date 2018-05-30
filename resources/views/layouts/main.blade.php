@@ -16,6 +16,8 @@
         <link rel="stylesheet" href="{{ URL::asset('node_modules/animate.css/animate.min.css') }}">
         <!-- Toast -->
         <link rel="stylesheet" href="{{ URL::asset('node_modules/toastr/build/toastr.min.css') }}">
+        <!-- Loading CSS -->
+        <link rel="stylesheet" href="{{ URL::asset('css/shared/loading.css') }}">
         <!-- Main CSS -->
         <link rel="stylesheet" href="{{ URL::asset('css/main.css') }}">
         @yield('head')
@@ -45,7 +47,9 @@
         <!-- Toast Notification -->
         <script src="{{ URL::asset('node_modules/toastr/build/toastr.min.js') }}"></script>
         <!-- Toast Notification Handler-->
-        <script src="{{ URL::asset('js//shared/toastNotifications.js') }}"></script>
+        <script src="{{ URL::asset('js/shared/toastNotifications.js') }}"></script>
+        <!-- Loading JS -->
+        <script src="{{ URL::asset('js/shared/loading.js') }}"></script>
         @yield('script')
     </body>
 </html>

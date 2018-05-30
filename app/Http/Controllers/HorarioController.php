@@ -77,7 +77,7 @@ class HorarioController extends Controller
                 ->join('horarios','horarios.id','=','horarios_id')
                 ->join('materias','materias.id','=','horarios.materias_id')
                 ->join('dias','dias.id','=','horarios.dias_id')
-                ->where('alunos_id',DB::Raw($aluno->id))->get();
+                ->where('alunos_id',$aluno->id)->get();
                 $gtg = true;
             if(count($horariosCadastrado) != 0){//Horarios Cadastrados
                 $inicio = new DateTime($horario->start);
@@ -139,13 +139,14 @@ class HorarioController extends Controller
         $info = DB::table('horarios')
         ->select('materias.nome', DB::raw("DATE_FORMAT(start,'%H:%i') start"), DB::raw("DATE_FORMAT(end,'%H:%i') end"))
         ->join('materias','materias.id','=','horarios.materias_id')
-        ->whereRaw("horarios.id = :id",['id'=>$id])
+        ->where("horarios.id",$id)
         ->first();
-        $alunos = DB::table('alunos')
+        $alunos = DB::table('horarios')
         ->select('alunos.id','alunos.nome','alunos.matricula','alunos.nascimento')
-        ->join('horarios_has_alunos','horarios_id','=',DB::Raw($id))
-        ->whereRaw('alunos.id = horarios_has_alunos.alunos_id')
-        ->where('alunos.situacao',DB::Raw(1))
+        ->join('horarios_has_alunos','horarios_has_alunos.horarios_id','=','horarios.id')
+        ->join('alunos','alunos.id','=','horarios_has_alunos.alunos_id')
+        ->where('horarios_has_alunos.horarios_id',$id)
+        ->where('alunos.situacao',1)
         ->orderBy('alunos.nome', 'ASC')
         ->get();
         try {
@@ -259,7 +260,6 @@ class HorarioController extends Controller
     public function newChamada($id)//Cria um novo relatorio
     {
         $dataHoje = $this->today->format('Y-m-d');
-
         $dados = Request::only(['dataAlunos','horario']); //Get only matricula and horario
         if($id == $dados['horario']){
             $alunos = json_decode($dados['dataAlunos'],true);
@@ -281,6 +281,7 @@ class HorarioController extends Controller
                 $relatorioCompleteExist = false;
             }
         } catch (\Exception $e) { //Nenhum relatorio
+            $relatorioCompleteExist = false;
             try {
                 $params['data'] = $dataHoje;
                 $params['horarios_id'] = $id;
@@ -325,14 +326,13 @@ class HorarioController extends Controller
         $todayComplete = $this->today->format('Y-m-d');
         try {
             $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
-            $alunos = DB::table('alunos')
+            $alunos = DB::table('relatorios')
             ->select('alunos.matricula','alunos.telefone_responsavel AS telefone','alunos.celular_responsavel AS celular','alunos.nome','alunos.nascimento','situacoes.nome AS situacao')
-            ->join('horarios_has_alunos','horarios_id','=',DB::Raw($id))
-            ->join('relatorios_has_alunos','relatorios_has_alunos.relatorios_id','=',DB::Raw($todaysRelatorio->id))
+            ->join('relatorios_has_alunos','relatorios_has_alunos.relatorios_id','=','relatorios.id')
+            ->join('alunos','alunos.id','=','relatorios_has_alunos.alunos_id')
             ->join('situacoes','situacoes.id','=','relatorios_has_alunos.situacoes_id')
-            ->whereRaw('alunos.id = horarios_has_alunos.alunos_id')
-            ->whereRaw('alunos.id = relatorios_has_alunos.alunos_id')
-            ->where('alunos.situacao',DB::Raw(1))
+            ->where('relatorios.id',$todaysRelatorio->id)
+            ->where('alunos.situacao',1)
             ->orderBy('alunos.nome', 'ASC')
             ->get();
         } catch (\Exception $e) {
@@ -360,11 +360,12 @@ class HorarioController extends Controller
 
     public function ocorrencia($id)//View para Ocorrencias
     {
-        $alunos = DB::table('alunos')
+        $alunos = DB::table('horarios')
         ->select('alunos.id','alunos.nome','alunos.matricula','alunos.nascimento')
-        ->join('horarios_has_alunos','horarios_id','=',DB::Raw($id))
-        ->whereRaw('alunos.id = horarios_has_alunos.alunos_id')
-        ->where('alunos.situacao',DB::Raw(1))
+        ->join('horarios_has_alunos','horarios_has_alunos.horarios_id','=','horarios.id')
+        ->join('alunos','alunos.id','=','horarios_has_alunos.alunos_id')
+        ->where('horarios_has_alunos.horarios_id',$id)
+        ->where('alunos.situacao',1)
         ->orderBy('alunos.nome', 'ASC')
         ->get();
 
@@ -491,6 +492,8 @@ class HorarioController extends Controller
             $de = str_replace(":","-",$info->start);
             $ate = str_replace(":","-",$info->end);
             $path = "D:/Aulas/Relatorios/$dia/$nomeMateria/$de - $ate/";
+            // $path = "/var/www/html/cni/relatorios/$dia/$nomeMateria/$de - $ate/";
+
             try { //Try to create the directory
                 $result = File::makeDirectory($path,0777,true,true);
             } catch (\Exception $e) {
@@ -500,14 +503,13 @@ class HorarioController extends Controller
             try { //Try to save PDF
                 $todayComplete = $this->today->format('Y-m-d');
                 $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
-                $alunos = DB::table('alunos')
+                $alunos = DB::table('relatorios')
                 ->select('alunos.matricula','alunos.telefone_responsavel AS telefone','alunos.celular_responsavel AS celular','alunos.nome','alunos.nascimento','situacoes.nome AS situacao')
-                ->join('horarios_has_alunos','horarios_id','=',DB::Raw($id))
-                ->join('relatorios_has_alunos','relatorios_has_alunos.relatorios_id','=',DB::Raw($todaysRelatorio->id))
+                ->join('relatorios_has_alunos','relatorios_has_alunos.relatorios_id','=','relatorios.id')
+                ->join('alunos','alunos.id','=','relatorios_has_alunos.alunos_id')
                 ->join('situacoes','situacoes.id','=','relatorios_has_alunos.situacoes_id')
-                ->whereRaw('alunos.id = horarios_has_alunos.alunos_id')
-                ->whereRaw('alunos.id = relatorios_has_alunos.alunos_id')
-                ->where('alunos.situacao',DB::Raw(1))
+                ->where('relatorios.id',$todaysRelatorio->id)
+                ->where('alunos.situacao',1)
                 ->orderBy('alunos.nome', 'ASC')
                 ->get();
                 try {
@@ -588,6 +590,7 @@ class HorarioController extends Controller
             $de = str_replace(":","-",$info->start);
             $ate = str_replace(":","-",$info->end);
             $path = "D:/Aulas/Relatorios/$dia/$nomeMateria/$de - $ate/";
+            // $path = "/var/www/html/cni/relatorios/$dia/$nomeMateria/$de - $ate/";
             try { //Try to create the directory
                 $result = File::makeDirectory($path,0777,true,true);
             } catch (\Exception $e) {
@@ -597,14 +600,13 @@ class HorarioController extends Controller
             try { //Try to save PDF
                 $todaysRelatorio = Relatorio::where('data',$todayComplete)->where('horarios_id',$id)->firstOrFail();
 
-                $alunos = DB::table('alunos')
+                $alunos = DB::table('relatorios')
                 ->select('alunos.matricula','alunos.telefone_responsavel AS telefone','alunos.celular_responsavel AS celular','alunos.nome','alunos.nascimento','situacoes.nome AS situacao')
-                ->join('horarios_has_alunos','horarios_id','=',DB::Raw($id))
-                ->join('relatorios_has_alunos','relatorios_has_alunos.relatorios_id','=',DB::Raw($todaysRelatorio->id))
+                ->join('relatorios_has_alunos','relatorios_has_alunos.relatorios_id','=','relatorios.id')
+                ->join('alunos','alunos.id','=','relatorios_has_alunos.alunos_id')
                 ->join('situacoes','situacoes.id','=','relatorios_has_alunos.situacoes_id')
-                ->whereRaw('alunos.id = horarios_has_alunos.alunos_id')
-                ->whereRaw('alunos.id = relatorios_has_alunos.alunos_id')
-                ->where('alunos.situacao',DB::Raw(1))
+                ->where('relatorios.id',$todaysRelatorio->id)
+                ->where('alunos.situacao',1)
                 ->orderBy('alunos.nome', 'ASC')
                 ->get();
                 try {

@@ -68,7 +68,8 @@ class AlunoController extends Controller
                         ->join('horarios','horarios.id','=','horarios_id')
                         ->join('materias','materias.id','=','horarios.materias_id')
                         ->join('dias','dias.id','=','horarios.dias_id')
-                        ->where('alunos_id',DB::Raw($aluno->id))->get();
+                        ->where('alunos_id',$aluno->id)
+                        ->get();
                         $aluno->cursos = (object)$horariosCadastrado;
                     } catch (\Exception $e) {
                         $this->message['text'] = 'Erro ao buscar cursos cadastrados para o aluno!';
@@ -100,7 +101,8 @@ class AlunoController extends Controller
                             ->join('horarios','horarios.id','=','horarios_id')
                             ->join('materias','materias.id','=','horarios.materias_id')
                             ->join('dias','dias.id','=','horarios.dias_id')
-                            ->where('alunos_id',DB::Raw($aluno->id))->get();
+                            ->where('alunos_id',$aluno->id)
+                            ->get();
                             $aluno->cursos = (object)$horariosCadastrado;
                         } catch (\Exception $e) {
                             $this->message['text'] = 'Erro ao buscar cursos cadastrados para o aluno!';
