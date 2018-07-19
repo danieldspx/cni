@@ -7,7 +7,7 @@ Este sistema foi criado para a CNI - Centro de Formação Profissional com o int
 # Responsividade
 
 O sistema foi criado visando funcionar em qualquer dispositivo, seja móvel ou Desktop. Desse modo o professor pode fazer a chamada de seu celular, Tablet ou do próprio computador.
-![Sistema rodando em dispositivos móveis](https://i.imgur.com/iLt4D5R.png | width=350)
+<img src="https://i.imgur.com/iLt4D5R.png" width="350" alt="Sistema rodando em dispositivos móveis">
 
 ## Funcionalidades :heart:
 
